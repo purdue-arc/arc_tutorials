@@ -1,0 +1,19 @@
+# Parameters can be specified in a yaml file
+# This is good if there are a lot and doing it in the launch file is too much
+
+publish_hours: true
+publish_minutes: true
+publish_seconds: true
+
+# You can also do nesting
+left:
+  example1: true
+  example2: "this is a string"
+  example3: 0.01f
+  example4: 2
+
+right:
+  example1: false
+  example2: "this is a different string"
+  example3: 0.02f
+  example4: 3

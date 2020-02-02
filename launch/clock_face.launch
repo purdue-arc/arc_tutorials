@@ -1,0 +1,3 @@
+<launch>
+  <node pkg="example" type="clock_face_node" name="clock"/>
+</launch>

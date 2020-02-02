@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>example</name>
+  <version>1.0.0</version>
+  <description>A quick example to demonstrate what a package looks like</description>
+  <maintainer email="baxter26@purdue.edu">James Baxter</maintainer>
+  <license>MIT</license>
+  <author email="baxter26@purdue.edu">James Baxter</author>
+
+  <depend>roscpp</depend>
+  <depend>boost</depend>
+  <depend>example_msgs</depend>
+  <depend>geometry_msgs</depend>
+  <depend>visualization_msgs</depend>
+  <buildtool_depend>catkin</buildtool_depend>
+
+</package>

@@ -1,0 +1,3 @@
+<launch>
+  <node pkg="example" type="state_publisher_node" name="state_publisher" />
+</launch>

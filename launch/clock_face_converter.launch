@@ -1,0 +1,16 @@
+<launch>
+  <node pkg="example" type="clock_face_converter_node" name="converter">
+    <!-- Here you can modify the launched node -->
+
+    <!-- remap topics: very useful -->
+    <remap from="hour" to="face/hour"/>
+    <remap from="minute" to="face/minute"/>
+    <remap from="second" to="face/second"/>
+
+    <!-- set parameters -->
+    <!-- Can load from file -->
+    <rosparam command="load" file="$(find example)/params/clock_face_converter_params.yaml" />
+    <!-- Can do it manually -->
+    <param name="publish_seconds" value="true"/>
+  </node>
+</launch>
