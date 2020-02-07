@@ -18,20 +18,35 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+#pragma once
 #include <ros/ros.h>
-#include <example/StatePublisher.h>
+#include <std_msgs/Empty.h>
 
-// A node that publishes a state for our system
-int main(int argc, char **argv)
+// I like to put custom code in a namespace, so it doesn't mess up other included stuff or built in ros classes / functionality
+namespace arc
 {
-  // name this node 'state_publisher'
-  ros::init(argc, argv, "state_publisher");
+  // Keeps track of state, and slowly times out if a heartbeat message stops
+  class StatePublisher
+  {
+  public:
+    // Constructor
+    StatePublisher();
 
-  ros::NodeHandle nh;
+    // Destructor
+    ~StatePublisher() = default;
 
-  arc::StatePublisher statePublisher;
+    // Callback
+    void heartbeatCallback(const std_msgs::Empty& e);
+    void timerCallback(const ros::TimerEvent& e);
 
-  ros::spin();
+  private:
+    ros::NodeHandle m_nh, m_pnh;
+    ros::Subscriber m_heartbeatSub;
+    ros::Publisher m_statePub;
+    ros::Timer m_stateTimer;
 
-  return 0;
+    const ros::Duration m_timeout_interval;
+    char m_current_state;
+    ros::Time m_last_cycle_time;
+  };
 }

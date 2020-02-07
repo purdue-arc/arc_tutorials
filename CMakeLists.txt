@@ -45,6 +45,7 @@ ${catkin_INCLUDE_DIRS}
 # Declare a C++ executable
 add_executable(state_publisher_node
   src/state_publisher_node.cpp
+  src/StatePublisher.cpp
 )
 # This line is required since we depend upon messages in same ws
 add_dependencies(state_publisher_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
