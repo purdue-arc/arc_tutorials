@@ -34,18 +34,37 @@ int main(int argc, char **argv)
   // create a publisher on topic 'state', sending State messages, and have a queue of 1000
   ros::Publisher pub = nh.advertise<example_msgs::State>("state", 1000);
 
+  // tracking variables
+  const ros::Duration update_interval(ros::param::param<float>("~update_interval_sec", 1.0));
+  char current_state = example_msgs::State::GOOD;
+  ros::Time last_cycle_time = ros::Time::now();
+
   // main timer loop
   ros::Timer timer = nh.createTimer(ros::Duration( 1.0f / ros::param::param<float>("~update_rate_hz", 10.0f)),
     [&](const ros::TimerEvent& e)
     {
+      // handle cycling
+      // note, you can subtract two ros::Time objects and get a ros::Duration
+      // you could also compare (ros::Time::now() - last_cycle_time).toSec() to a double
+      if((e.current_real - last_cycle_time) >= update_interval)
+      {
+        last_cycle_time = e.current_real;
+        current_state++;
+        // handle overflow
+        if(current_state > example_msgs::State::ABYSMAL)
+        {
+          current_state = example_msgs::State::GOOD;
+        }
+      }
+
       // create an instance of our message to send
       example_msgs::State state;
 
       // populate the time stamp with current time
       state.header.stamp = e.current_real;
 
-      // fill out the state using the defined constants
-      state.state = example_msgs::State::ABYSMAL;
+      // fill out the state
+      state.state = current_state;
 
       // publish the message
       pub.publish(state);
