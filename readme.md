@@ -122,7 +122,9 @@ and combined_clock.launch in a single file, using include tags.
 2. Timer Conversion  
 Modify state_publisher_node to operate off a Timer instead of a Rate object.
 Parameterize the publish rate with a parameter you pick, and set this parameter
-in the launch file. Ensure it is robust to the parameter not being set.
+in the launch file. Ensure it is robust to the parameter not being set. Measure
+the output rate using `rostopic hz /state` for when the parameter is set and for
+when it is defaulted to.
 
 3. Cyclical State Publisher  
 Modify the state publisher node to cycle through the various states defined within
