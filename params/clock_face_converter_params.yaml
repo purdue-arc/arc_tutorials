@@ -9,11 +9,11 @@ publish_seconds: true
 left:
   example1: true
   example2: "this is a string"
-  example3: 0.01f
+  example3: 0.01
   example4: 2
 
 right:
   example1: false
   example2: "this is a different string"
-  example3: 0.02f
+  example3: 0.02
   example4: 3
