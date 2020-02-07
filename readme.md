@@ -52,7 +52,7 @@ into an existing workspace, but creating a new one may be cleaner._
 ex: `git clone https://github.com/purdue-arc/example.git && git clone
 https://github.com/purdue-arc/example_msgs.git`
 
-4. Build the packages
+4. Build the packages  
 ex: `cd .. && catkin build`  
 _Note: `catkin_make` can also be used, but catkin build provides a more
 descriptive command line interface and also builds packages in parallel._
