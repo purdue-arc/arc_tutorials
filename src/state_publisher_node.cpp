@@ -34,30 +34,24 @@ int main(int argc, char **argv)
   // create a publisher on topic 'state', sending State messages, and have a queue of 1000
   ros::Publisher pub = nh.advertise<example_msgs::State>("state", 1000);
 
-  // create a rate object to run at 10 Hz
-  // you can also use a timer as demonstrated in clock_face_node
-  ros::Rate loop(10.0);
+  // main timer loop
+  ros::Timer timer = nh.createTimer(ros::Duration( 1.0f / ros::param::param<float>("~update_rate_hz", 10.0f)),
+    [&](const ros::TimerEvent& e)
+    {
+      // create an instance of our message to send
+      example_msgs::State state;
 
-  while(ros::ok())
-  {
-    // create an instance of our message to send
-    example_msgs::State state;
+      // populate the time stamp with current time
+      state.header.stamp = e.current_real;
 
-    // populate the time stamp with current time
-    state.header.stamp = ros::Time::now();
+      // fill out the state using the defined constants
+      state.state = example_msgs::State::ABYSMAL;
 
-    // fill out the state using the defined constants
-    state.state = example_msgs::State::ABYSMAL;
+      // publish the message
+      pub.publish(state);
+    });
 
-    // publish the message
-    pub.publish(state);
-
-    // handle callbacks, send messages, do the behind the scenes stuff
-    ros::spinOnce();
-
-    // block thread until rate is ready
-    loop.sleep();
-  }
+  ros::spin();
 
   return 0;
 }

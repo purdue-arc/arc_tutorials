@@ -1,3 +1,5 @@
 <launch>
-  <node pkg="example" type="state_publisher_node" name="state_publisher" />
+  <node pkg="example" type="state_publisher_node" name="state_publisher" >
+    <param name="update_rate_hz"  value="15.0"/>
+  </node>
 </launch>
