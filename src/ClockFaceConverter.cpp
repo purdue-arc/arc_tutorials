@@ -36,9 +36,9 @@ namespace arc
   m_secondPub{},
   m_faceSub{},
   // get a private parameter, and use a default value if it isn't specified
-  m_publishHours{m_pnh.param<bool>("publish_hours", "true")},
-  m_publishMinutes{m_pnh.param<bool>("publish_minutes", "true")},
-  m_publishSeconds{m_pnh.param<bool>("publish_seconds", "true")}
+  m_publishHours{m_pnh.param<bool>("publish_hours", true)},
+  m_publishMinutes{m_pnh.param<bool>("publish_minutes", true)},
+  m_publishSeconds{m_pnh.param<bool>("publish_seconds", true)}
   {
     // set up our publishers
     if(m_publishHours)
