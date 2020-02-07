@@ -1,0 +1,4 @@
+<launch>
+  <include file="$(find example)/launch/combined_clock.launch" />
+  <include file="$(find example)/launch/state_publisher.launch" />
+</launch>
