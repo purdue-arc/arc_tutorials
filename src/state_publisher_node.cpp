@@ -38,16 +38,38 @@ int main(int argc, char **argv)
   // you can also use a timer as demonstrated in clock_face_node
   ros::Rate loop(10.0);
 
+  // tracking variables
+  const ros::Duration update_interval(ros::param::param<float>("~update_interval_sec", 1.0));
+  char current_state = example_msgs::State::GOOD;
+  ros::Time last_cycle_time = ros::Time::now();
+
   while(ros::ok())
   {
+    // why I like timers, e.current_real is defined
+    const ros::Time now = ros::Time::now();
+
+    // handle cycling
+    // note, you can subtract two ros::Time objects and get a ros::Duration
+    // you could also compare (ros::Time::now() - last_cycle_time).toSec() to a double
+    if((now - last_cycle_time) >= update_interval)
+    {
+      last_cycle_time = now;
+      current_state++;
+      // handle overflow
+      if(current_state > example_msgs::State::ABYSMAL)
+      {
+        current_state = example_msgs::State::GOOD;
+      }
+    }
+
     // create an instance of our message to send
     example_msgs::State state;
 
     // populate the time stamp with current time
-    state.header.stamp = ros::Time::now();
+    state.header.stamp = now;
 
     // fill out the state using the defined constants
-    state.state = example_msgs::State::ABYSMAL;
+    state.state = current_state;
 
     // publish the message
     pub.publish(state);

@@ -1,3 +1,5 @@
 <launch>
-  <node pkg="example" type="state_publisher_node" name="state_publisher" />
+  <node pkg="example" type="state_publisher_node" name="state_publisher" >
+    <param name="update_interval_sec" value="2.0" />
+  </node>
 </launch>
