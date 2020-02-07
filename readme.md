@@ -131,7 +131,7 @@ Modify the state publisher node to cycle through the various states defined with
 the State message. The rate at which it cycles should be parameterized via a
 parameter you pick and set in the launch file.
 
-4. State Publisher Timeout
+4. State Publisher Timeout  
 Modify the state publisher node to slowly worsen its published state in response
 to a subscribed Empty message. For example, it receives the Empty message (on a
 topic you pick) and is GOOD for 1 second, BAD for the next second ... stopping at
