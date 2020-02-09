@@ -54,8 +54,8 @@ namespace arc
     const double angle = 2 * M_PI * static_cast<double>(m_time.minutes()) / 60.0;
     geometry_msgs::Vector3 minute;
     minute.x = 0.0;
-    minute.y = 0.75 * -1.0 * sin(angle);
-    minute.z = 0.75 * cos(angle);
+    minute.y = 1.0 * -1.0 * sin(angle);
+    minute.z = 1.0 * cos(angle);
     return minute;
   }
 
@@ -65,8 +65,8 @@ namespace arc
     const double angle = 2 * M_PI * static_cast<double>(m_time.seconds()) / 60.0;
     geometry_msgs::Vector3 second;
     second.x = 0.0;
-    second.y = 0.75 * -1.0 * sin(angle);
-    second.z = 0.75 * cos(angle);
+    second.y = 1.0 * -1.0 * sin(angle);
+    second.z = 1.0 * cos(angle);
     return second;
   }
 }
