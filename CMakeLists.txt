@@ -68,6 +68,12 @@ add_executable(clock_face_converter_node
 add_dependencies(clock_face_converter_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(clock_face_converter_node ${catkin_LIBRARIES})
 
+# Declare a C++ executable
+add_executable(clock_face_numerals_node
+  src/clock_face_numerals_node.cpp
+)
+target_link_libraries(clock_face_numerals_node ${catkin_LIBRARIES})
+
 #############
 ## Install ##
 #############
@@ -88,6 +94,11 @@ install(TARGETS clock_face_node
 
 # Mark executables for installation
 install(TARGETS clock_face_converter_node
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
+# Mark executables for installation
+install(TARGETS clock_face_numerals_node
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

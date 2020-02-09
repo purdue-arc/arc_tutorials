@@ -3,4 +3,5 @@
   <include file="$(find example)/launch/clock_face.launch" />
   <include file="$(find example)/launch/clock_face_converter.launch" />
   <node pkg="rviz" type="rviz" name="rviz" args="-d $(find example)/rviz/clock.rviz"/>
+  <node pkg="example" type="clock_face_numerals_node" name="numerals"/>
 </launch>
