@@ -49,9 +49,9 @@ int main(int argc, char **argv)
         marker.color.r = 1.0;   // Make white
         marker.color.g = 1.0;
         marker.color.b = 1.0;
-          if(romanNumerals)
-          {
-            switch (i) {
+        if(romanNumerals)
+        {
+          switch (i) {
               case 1: marker.text = "I"; break;
               case 2: marker.text = "II"; break;
               case 3: marker.text = "III"; break;
@@ -68,7 +68,7 @@ int main(int argc, char **argv)
           }
           else
           {
-            char* text;
+            char text[2];
             sprintf(text, "%d", i);
             marker.text = text;
           }
