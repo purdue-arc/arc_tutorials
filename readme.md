@@ -110,10 +110,10 @@ ex: `rosrun rqt_graph rqt_graph`
 
 # Coding Challenges
 To get better at working in ROS, there are a few coding challenges you can do
-with this package. Create a new branch for each one. In the future, sample
-solutions will be available in branches named `challenge-*`, where the text is
-the title of the challenge from the below list. They are roughly arranged in
-order of increasing difficulty.
+with this package. Create a new branch for each one. Sample solutions are
+available in branches named `challenge-*`, where the text is the title of the
+challenge from the below list. They are roughly arranged in order of increasing
+difficulty.
 
 1. Combined Launch File  
 Create a launch file that combines the functionality of state_publisher.launch
