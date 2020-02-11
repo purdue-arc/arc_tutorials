@@ -11,6 +11,7 @@ find_package(catkin REQUIRED COMPONENTS
   example_msgs
   geometry_msgs
   visualization_msgs
+  std_msgs
 )
 
 # System dependencies are found with CMake's conventions
@@ -29,6 +30,7 @@ catkin_package(
     example_msgs
     geometry_msgs
     visualization_msgs
+    std_msgs
 )
 
 ###########
@@ -68,6 +70,15 @@ add_executable(clock_face_converter_node
 add_dependencies(clock_face_converter_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(clock_face_converter_node ${catkin_LIBRARIES})
 
+# Declare a C++ executable
+add_executable(clock_face_decoder_node
+  src/clock_face_decoder_node.cpp
+  src/ClockFaceDecoder.cpp
+)
+# This line is required since we depend upon messages in same ws
+add_dependencies(clock_face_decoder_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(clock_face_decoder_node ${catkin_LIBRARIES})
+
 #############
 ## Install ##
 #############
@@ -88,6 +99,11 @@ install(TARGETS clock_face_node
 
 # Mark executables for installation
 install(TARGETS clock_face_converter_node
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
+# Mark executables for installation
+install(TARGETS clock_face_decoder_node
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
