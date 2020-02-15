@@ -49,8 +49,7 @@ but you must have a folder named src inside. You can also add these packages
 into an existing workspace, but creating a new one may be cleaner._
 
 3. Clone the necessary repos  
-ex: `git clone https://github.com/purdue-arc/example.git && git clone
-https://github.com/purdue-arc/example_msgs.git`
+ex: `git clone https://github.com/purdue-arc/ros-examples.git`
 
 4. Build the packages  
 ex: `cd .. && catkin build`  
