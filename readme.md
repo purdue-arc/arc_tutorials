@@ -1,6 +1,5 @@
 # General Information
-This package contains example rosnodes and implements custom messages defined in
-example_msgs
+These packages contains example rosnodes and custom messages
 ## Nodes
 ### state_publisher_node
 This is a very basic node that exists entirely inside a main function. It
@@ -49,8 +48,7 @@ but you must have a folder named src inside. You can also add these packages
 into an existing workspace, but creating a new one may be cleaner._
 
 3. Clone the necessary repos  
-ex: `git clone https://github.com/purdue-arc/example.git && git clone
-https://github.com/purdue-arc/example_msgs.git`
+ex: `git clone https://github.com/purdue-arc/ros-examples.git`
 
 4. Build the packages  
 ex: `cd .. && catkin build`  
@@ -62,7 +60,7 @@ ex: `source devel/setup.bash`
 _Note: This must be done in every new terminal window that you want to use these
 packages in. It may be convenient to add it to your bashrc, which is a script
 called every time you open a new one. You can add it via the following command:
-`echo 'source ~/src/example_ws_2/devel/setup.bash --extend' >> ~/.bashrc`
+`echo 'source ~/src/example_ws/devel/setup.bash --extend' >> ~/.bashrc`
 The `--extend` flag is used so multiple workspaces can be sourced simultaneously._
 
 # Operation Guide
@@ -110,10 +108,10 @@ ex: `rosrun rqt_graph rqt_graph`
 
 # Coding Challenges
 To get better at working in ROS, there are a few coding challenges you can do
-with this package. Create a new branch for each one. In the future, sample
-solutions will be available in branches named `challenge-*`, where the text is
-the title of the challenge from the below list. They are roughly arranged in
-order of increasing difficulty.
+with this package. Create a new branch for each one. Sample solutions are
+available in branches named `challenge-*`, where the text is the title of the
+challenge from the below list. They are roughly arranged in order of increasing
+difficulty.
 
 1. Combined Launch File  
 Create a launch file that combines the functionality of state_publisher.launch
