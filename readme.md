@@ -60,7 +60,7 @@ ex: `source devel/setup.bash`
 _Note: This must be done in every new terminal window that you want to use these
 packages in. It may be convenient to add it to your bashrc, which is a script
 called every time you open a new one. You can add it via the following command:
-`echo 'source ~/src/example_ws_2/devel/setup.bash --extend' >> ~/.bashrc`
+`echo 'source ~/src/example_ws/devel/setup.bash --extend' >> ~/.bashrc`
 The `--extend` flag is used so multiple workspaces can be sourced simultaneously._
 
 # Operation Guide
