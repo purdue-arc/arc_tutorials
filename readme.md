@@ -1,6 +1,5 @@
 # General Information
-This package contains example rosnodes and implements custom messages defined in
-example_msgs
+These packages contains example rosnodes and custom messages
 ## Nodes
 ### state_publisher_node
 This is a very basic node that exists entirely inside a main function. It
