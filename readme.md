@@ -74,14 +74,15 @@ many of the same things via the command line interface. Roslaunch will also star
 a ROS master if one is not already running. Rosrun requires you to have one
 already running.
 
-### Rosrun Syntax
-Start a ROS master if not already running: `roscore`  
+### Rosrun
+Start the ROS core if not already running: `roscore`  
 Run a node: `rosrun <pkg name> <node name>`  
 ex: `rosrun example state_publisher_node`
 
-### Roslaunch Syntax
+### Roslaunch
 Launch a launch file: `roslaunch <pdk name> <launch file name>`  
 ex: `roslaunch example combined_clock.launch`
+_Note: This will start the ros core automatically if needed_
 
 ## Debugging
 There are several command line and GUI tools to help in debugging a network of
@@ -98,8 +99,8 @@ ex: `rostopic echo /<topic name>`
 
 ### Rosnode
 This is a command line to interface with ROS nodes.  
-ex: `rostopic list`  
-ex: `rostopic info <node name>`
+ex: `rosnode list`  
+ex: `rosnode info <node name>`
 
 ### Rqt_graph
 This is a GUI tool that displays the network of ROS nodes and topics. Be sure to
