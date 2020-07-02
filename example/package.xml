@@ -4,7 +4,7 @@
   <version>1.0.0</version>
   <description>A quick example to demonstrate what a package looks like</description>
   <maintainer email="baxter26@purdue.edu">James Baxter</maintainer>
-  <license>MIT</license>
+  <license>BSD-3-Clause</license>
   <author email="baxter26@purdue.edu">James Baxter</author>
 
   <depend>roscpp</depend>
