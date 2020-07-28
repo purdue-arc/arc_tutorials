@@ -35,7 +35,7 @@ from std_msgs.msg import Int32, Bool
 from enum import Enum
 import numpy as np
 from random import sample
-# import pyglet
+import pygame
 from threading import Lock
 
 class Command(Enum):
@@ -55,6 +55,12 @@ class SnakeGame:
         # TODO randomly initialize starting position
         self.position = [(8,6), (8,5), (8,4)]
         self.generateGoal()
+
+        if self.renderEnabled:
+            pygame.init()
+            self.scaling = 80
+            self.screen = pygame.display.set_mode((self.size*self.scaling, self.size*self.scaling))
+            self.render()
 
     def step(self, nextCommand):
         """advance one time-step in the game"""
@@ -82,7 +88,7 @@ class SnakeGame:
                 # Check goal and move tail (if needed)
                 if headPosition == self.goalPosition:
                     self.score += 1
-                    generateGoal()
+                    self.generateGoal()
                 else:
                     # remove the very last tail position because it has moved
                     # also hasn't grown from reaching goal
@@ -101,10 +107,25 @@ class SnakeGame:
         goal = sample(free_spaces, 1)[0]
         self.goalPosition = (goal // self.size, goal % self.size)
 
+    def toDisplayCoords(self, position):
+        """convert cartesian coordinates to display coordinates"""
+        x = self.scaling * position[0] + self.scaling / 2
+        y = self.scaling * (self.size - position[1]) - self.scaling / 2
+        return (x, y)
+
     def render(self):
         """render the current state of the game"""
-        # TODO use pyglet to render
-        pass
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                self.renderEnabled = False
+                pygame.quit()
+                return
+        self.screen.fill((175, 175, 175))
+        pygame.draw.circle(self.screen, (255, 0, 0), self.toDisplayCoords(self.goalPosition), self.scaling/2)
+        pygame.draw.circle(self.screen, (150, 200, 0), self.toDisplayCoords(self.position[0]), self.scaling/2)
+        for x, y in self.position[1:]:
+            pygame.draw.circle(self.screen, (0, 200, 0), self.toDisplayCoords((x, y)), self.scaling/2)
+        pygame.display.flip()
 
 class ThreadedCommand:
     def __init__(self):
