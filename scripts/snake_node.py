@@ -32,86 +32,114 @@ import rospy
 from geometry_msgs.msg import Twist, PoseArray, Pose, Point, PointStamped
 from std_msgs.msg import Int32, Bool
 
-from enum import Enum
 import numpy as np
 from random import sample
 import pygame
 from threading import Lock
+from math import sqrt, ceil
 
-class Command(Enum):
-    """Enum to handle commands for snake"""
-    LEFT = 1
-    FORWARD = 2
-    RIGHT = 3
+def dist(vector):
+    """calculate the euclidian distance of a numpy vector"""
+    return sqrt(np.sum(np.square(vector)))
+
 
 class SnakeGame:
     """A simple game of Snake with ROS bindings"""
     def __init__(self):
         """constructor"""
-        self.renderEnabled = True
-        self.size = 10
-        self.score = 0
         self.active = True
+        self.lastUpdateTime = None
+        self.bounds = 10
+
         # TODO randomly initialize starting position
-        self.position = [(8,6), (8,5), (8,4)]
+        self.heading = np.array([[0, 1]], dtype=np.double).T
+        self.segments = 3
+        self.segmentFollowDist = 0.75
+        self.position = [np.array([[8, 6 - self.segmentFollowDist * y]], dtype=np.double).T for y in range(self.segments)]
+
+        self.pathResolution = 0.01
+        self.path = [np.array([[8, 6 - self.pathResolution * y]], dtype=np.double).T for y in range(1+int(ceil((self.segments-1) * self.segmentFollowDist / self.pathResolution)))]
+        self.segmentRadius = 0.5
+
         self.generateGoal()
 
+        self.renderEnabled = True
         if self.renderEnabled:
             pygame.init()
-            self.scaling = 80
-            self.screen = pygame.display.set_mode((self.size*self.scaling, self.size*self.scaling))
+            self.scaling = 100
+            self.screen = pygame.display.set_mode(((self.bounds+1)*self.scaling, (self.bounds+1)*self.scaling))
             self.render()
 
     def step(self, nextCommand):
         """advance one time-step in the game"""
+        if not self.lastUpdateTime:
+            self.lastUpdateTime = rospy.Time.now()
+
         if self.active:
-            # Find new head position
-            forwardVector = np.array(self.position[0]) - np.array(self.position[1])
-            if nextCommand == Command.LEFT:
-                forwardVector = np.multiply(np.array([[0, -1], [1, 0]]), forwardVector)
-            elif nextCommand == Command.RIGHT:
-                forwardVector = np.multiply(np.array([[0, 1], [-1, 0]]), forwardVector)
-            elif nextCommand == Command.FORWARD:
-                pass
-            else:
-                raise Exception("Invalid command")
-            headPosition = np.array(self.position[0]) + forwardVector
+            # update time
+            now = rospy.Time.now()
+            deltaT = (now - self.lastUpdateTime).to_sec()
+            self.lastUpdateTime = now
+
+            # update head position
+            headPosition = self.position[0] + nextCommand[0] * deltaT * self.heading
+
+            # update heading
+            sinTheta = np.sin(nextCommand[1] * deltaT)
+            cosTheta = np.cos(nextCommand[1] * deltaT)
+            rotationMatrix = np.array([[cosTheta, -sinTheta], [sinTheta, cosTheta]])
+            heading = np.matmul(rotationMatrix, self.heading)
 
             # Check bounds
-            if np.count_nonzero(np.logical_and(headPosition >= 0, headPosition < self.size)) != 2:
+            # TODO, didn't seem to work
+            if np.count_nonzero(np.logical_and(headPosition >= 0, headPosition < self.bounds)) != 2:
                 self.active = False
             else:
-                # update head position
-                headPosition = (headPosition[0], headPosition[1])
-                self.position.insert(0, headPosition)
+                # update path
+                if dist(headPosition - self.position[0]) >= self.pathResolution:
+                    self.path.insert(0, headPosition)
 
-                # Check goal and move tail (if needed)
-                if headPosition == self.goalPosition:
-                    self.score += 1
+                # update head position
+                self.position[0] = headPosition
+                self.heading = heading
+
+                # Update tail
+                segmentIndex = 1
+                self.position = self.position[:1]
+                for pathIndex, position in enumerate(self.path):
+                    if dist(self.position[segmentIndex-1] - position) >= self.segmentFollowDist:
+                        self.position.append(position)
+                        segmentIndex += 1
+                        if segmentIndex >= self.segments:
+                            # if we aren't waiting to spawn new segments,
+                            # we don't need to track the path longer than the snake
+                            self.path = self.path[:pathIndex+1]
+                            break
+
+                # confirm all previously spawned segments still have a position
+                if not segmentIndex >= len(self.position):
+                    raise Exception('cannot solve for segment positions')
+
+                # Check goal
+                if dist(headPosition - self.goalPosition) <= self.segmentRadius:
+                    self.segments = 5
                     self.generateGoal()
-                else:
-                    # remove the very last tail position because it has moved
-                    # also hasn't grown from reaching goal
-                    self.position.pop()
 
         if self.renderEnabled:
             self.render()
 
     def generateGoal(self):
         """generate a goal position that isn't occupied"""
-        # use a linear index to sample
-        total_spaces = range(0, pow(self.size, 2))
-        occupied_spaces = [x * self.size + y for x, y in self.position]
-        free_spaces = [space for space in total_spaces if space not in occupied_spaces]
-
-        goal = sample(free_spaces, 1)[0]
-        self.goalPosition = (goal // self.size, goal % self.size)
+        # TODO random sample
+        self.goalPosition = np.array([[4, 6]], dtype=np.double).T
 
     def toDisplayCoords(self, position):
         """convert cartesian coordinates to display coordinates"""
-        x = self.scaling * position[0] + self.scaling / 2
-        y = self.scaling * (self.size - position[1]) - self.scaling / 2
-        return (x, y)
+        display = np.array([[0.5, 0.5]]).T + position
+        display = np.matmul(np.array([[1, 0], [0, -1]]), display)
+        display += np.array([[0, self.bounds]]).T
+        display *= self.scaling
+        return display.astype(np.int32)
 
     def render(self):
         """render the current state of the game"""
@@ -120,61 +148,58 @@ class SnakeGame:
                 self.renderEnabled = False
                 pygame.quit()
                 return
-        self.screen.fill((175, 175, 175))
-        pygame.draw.circle(self.screen, (255, 0, 0), self.toDisplayCoords(self.goalPosition), self.scaling/2)
-        pygame.draw.circle(self.screen, (150, 200, 0), self.toDisplayCoords(self.position[0]), self.scaling/2)
-        for x, y in self.position[1:]:
-            pygame.draw.circle(self.screen, (0, 200, 0), self.toDisplayCoords((x, y)), self.scaling/2)
+        self.screen.fill((200, 200, 200))
+        pygame.draw.circle(self.screen, (255, 0, 0), self.toDisplayCoords(self.goalPosition), int(self.segmentRadius*self.scaling))
+        if self.segments > len(self.position):
+            pygame.draw.circle(self.screen, (0, 200, 0), self.toDisplayCoords(self.path[-1]), int(self.segmentRadius*self.scaling))
+        for position in self.position[1:]:
+            pygame.draw.circle(self.screen, (0, 200, 0), self.toDisplayCoords(position), int(self.segmentRadius*self.scaling))
+        pygame.draw.circle(self.screen, (150, 200, 0), self.toDisplayCoords(self.position[0]), int(self.segmentRadius*self.scaling))
         pygame.display.flip()
 
 class ThreadedCommand:
     def __init__(self):
         self.lock = Lock()
-        self.command = Command.FORWARD
+        self.command = (0, 0)
+        self.lastTime = rospy.Time.now()
 
 def commandCb(commandMsg, threadedCommand):
     """callback for command messages for snake"""
     threadedCommand.lock.acquire()
-    if commandMsg.angular.z > 0:
-        threadedCommand.command = Command.LEFT
-    elif commandMsg.angular.z < 0:
-        threadedCommand.command = Command.RIGHT
-    else:
-        threadedCommand.command = Command.FORWARD
+    threadedCommand.command = (commandMsg.linear.x, commandMsg.angular.z)
+    threadedCommand.lastTime = rospy.Time.now()
     threadedCommand.lock.release()
 
 if __name__ == "__main__":
+    rospy.init_node('snake_node', anonymous=False)
+
     snakeGame = SnakeGame()
     threadedCommand = ThreadedCommand()
 
-    rospy.init_node('snake_node', anonymous=False)
     posePub = rospy.Publisher('pose', PoseArray, queue_size=3)
     goalPub = rospy.Publisher('goal', PointStamped, queue_size=3)
     scorePub = rospy.Publisher('score', Int32, queue_size=3)
     activePub = rospy.Publisher('active', Bool, queue_size=3)
-    commandSub = rospy.Subscriber('command', Twist, commandCb, threadedCommand)
+    commandSub = rospy.Subscriber('cmd_vel', Twist, commandCb, threadedCommand)
 
     # snakeGame.renderEnabled = rospy.get_param('~/renderEnabled', False)
     frame_id = rospy.get_param('~/frame_id', 'game')
 
-    # TODO: wait for subscribers to connect
-    # or make step require recieving a command
-
     # main loop
     try:
-        rate = rospy.Rate(rospy.get_param('~/rate', 1)) # 10 Hz
+        rate = rospy.Rate(rospy.get_param('~/rate', 30)) # 10 Hz
         while not rospy.is_shutdown():
             timestamp = rospy.Time.now()
 
             threadedCommand.lock.acquire()
             snakeGame.step(threadedCommand.command)
-            threadedCommand.command = Command.FORWARD
+            # TODO timeout
             threadedCommand.lock.release()
-            print [(x,y) for x, y in snakeGame.position]
 
             poseMsg = PoseArray()
             poseMsg.header.stamp = timestamp
             poseMsg.header.frame_id = frame_id
+            # TODO orientation
             poseMsg.poses = [Pose(position=Point(x=x, y=y)) for x, y in snakeGame.position]
             posePub.publish(poseMsg)
 
@@ -184,7 +209,7 @@ if __name__ == "__main__":
             goalMsg.point.x, goalMsg.point.y = snakeGame.goalPosition
             goalPub.publish(goalMsg)
 
-            scorePub.publish(snakeGame.score)
+            scorePub.publish(snakeGame.segments)
             activePub.publish(snakeGame.active)
 
             rate.sleep()
