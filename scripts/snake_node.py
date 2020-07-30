@@ -53,40 +53,40 @@ class SnakeGameRenderer:
     GREEN = (0, 200, 0)
     YELLOW = (150, 200, 0)
 
-    def __init__(self, game):
-        self.game = game
+    def __init__(self, bounds, segmentRadius):
+        self.bounds = bounds
+        self.segmentRadius = segmentRadius
         self.scaling = rospy.get_param('~/rendering/scaling', 50)
-        windowSize = int((game.bounds + 2*game.segmentRadius) * self.scaling)
+        windowSize = int((bounds + 2*segmentRadius) * self.scaling)
         pygame.init()
         self.screen = pygame.display.set_mode((windowSize, windowSize))
-        self.render()
 
     def toDisplayCoords(self, position):
         """convert game coordinates to display coordinates"""
-        display = position + vector(1, 1)*self.game.segmentRadius
+        display = position + vector(1, 1) * self.segmentRadius
         display = np.matmul(np.array([[1, 0], [0, -1]]), display)
-        display += vector(0, self.game.bounds + 2*self.game.segmentRadius)
+        display += vector(0, self.bounds + 2*self.segmentRadius)
         display *= self.scaling
         return display.astype(np.int32)
 
-    def render(self):
+    def render(self, goalPosition, snakePosition):
         """render the current state of the game"""
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                self.game.renderEnabled = False
                 pygame.quit()
-                return
+                return False
         self.screen.fill(self.GRAY)
-        radius = int(self.game.segmentRadius * self.scaling)
+        radius = int(self.segmentRadius * self.scaling)
         # Draw the goal
-        if not self.game.goalPosition is None:
-            pygame.draw.circle(self.screen, self.RED, self.toDisplayCoords(self.game.goalPosition), radius)
+        if not goalPosition is None:
+            pygame.draw.circle(self.screen, self.RED, self.toDisplayCoords(goalPosition), radius)
         # Draw segments
-        for position in self.game.position[1:]:
+        for position in snakePosition[1:]:
             pygame.draw.circle(self.screen, self.GREEN, self.toDisplayCoords(position), radius)
         # Draw the head in a different color
-        pygame.draw.circle(self.screen, self.YELLOW, self.toDisplayCoords(self.game.position[0]), radius)
+        pygame.draw.circle(self.screen, self.YELLOW, self.toDisplayCoords(snakePosition[0]), radius)
         pygame.display.flip()
+        return True
 
 class SnakeGame:
     """A simple game of Snake with ROS bindings"""
@@ -110,8 +110,8 @@ class SnakeGame:
 
         self.renderEnabled = rospy.get_param('~/rendering/enabled', True)
         if self.renderEnabled:
-            self.renderer = SnakeGameRenderer(self)
-            self.renderer.render()
+            self.renderer = SnakeGameRenderer(self.bounds, self.segmentRadius)
+            self.renderEnabled = self.renderer.render(self.goalPosition, self.position)
 
     def step(self, nextCommand):
         """advance one time-step in the game"""
@@ -177,7 +177,7 @@ class SnakeGame:
                     self.generateGoal()
 
         if self.renderEnabled:
-            self.renderer.render()
+            self.renderEnabled = self.renderer.render(self.goalPosition, self.position)
 
     def generateGoal(self):
         """generate a goal position that isn't occupied"""
