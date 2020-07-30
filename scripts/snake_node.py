@@ -186,11 +186,13 @@ class SnakeGame:
         # we don't want to hold up the loop
         for __ in range(10):
             goal = vector(random(), random()) * self.bounds
+            valid = True
             for segment in self.position:
-                # arbitrarily said 1 want a 1/2 segment gap
+                # arbitrarily said I want a 1/2 segment gap
                 if not dist(segment - goal) >= 3*self.segmentRadius:
-                    # BUG this seemed to not work once
+                    valid = False
                     break
+            if valid:
                 self.goalPosition = goal
                 return
 
