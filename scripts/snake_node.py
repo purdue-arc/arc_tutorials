@@ -129,10 +129,16 @@ class SnakeGame:
             rotationMatrix = np.array([[cosTheta, -sinTheta], [sinTheta, cosTheta]])
             heading = np.matmul(rotationMatrix, self.heading)
 
-            # TODO limit max angle or implement failure on self intersect
+            # TODO max angle and don't check first segment (or two?) for collision
 
-            # Check bounds
-            if np.count_nonzero(np.logical_and(headPosition >= 0, headPosition < self.bounds)) != 2:
+            outOfBounds = np.count_nonzero(np.logical_and(headPosition >= 0, headPosition < self.bounds)) != 2
+            selfIntersect = False
+            for segment in self.position[1:]:
+                if dist(headPosition - segment) < self.segmentFollowDist:
+                    selfIntersect = True
+                    break
+
+            if outOfBounds or selfIntersect:
                 self.active = False
             else:
                 # update path
