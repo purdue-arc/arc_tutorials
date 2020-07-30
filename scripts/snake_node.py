@@ -92,19 +92,19 @@ class SnakeGame:
     """A simple game of Snake with ROS bindings"""
     def __init__(self):
         """constructor"""
+        self.bounds = rospy.get_param('~/bounds', 10)
+        self.pathResolution = rospy.get_param('~/snake/path_resolution', 0.01)
+        self.segmentFollowDist = rospy.get_param('~/snake/segment_follow_dist', 0.75)
+        self.segmentRadius = rospy.get_param('~/snake/segment_radius', 0.5)
+
         self.active = True
         self.lastUpdateTime = None
-        self.bounds = 10
+        self.segments = 3
 
         # TODO randomly initialize starting position
         self.heading = vector(0, 1)
-        self.segments = 3
-        self.segmentFollowDist = 0.75
         self.position = [vector(8, 6 - self.segmentFollowDist * y) for y in range(self.segments)]
-
-        self.pathResolution = 0.01
         self.path = [vector(8, 6 - self.pathResolution * y) for y in range(1+int(ceil((self.segments-1) * self.segmentFollowDist / self.pathResolution)))]
-        self.segmentRadius = 0.5
 
         self.generateGoal()
 
