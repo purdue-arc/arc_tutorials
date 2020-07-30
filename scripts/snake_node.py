@@ -42,6 +42,10 @@ def dist(vector):
     """calculate the euclidian distance of a numpy vector"""
     return sqrt(np.sum(np.square(vector)))
 
+def vector(x, y):
+    """helper function to create column vectors in numpy"""
+    return np.array([[x, y]], dtype=np.double).T
+
 class SnakeGameRenderer:
     """a helper class to render the Snake game in pygame"""
     GRAY = (200, 200, 200)
@@ -59,9 +63,9 @@ class SnakeGameRenderer:
 
     def toDisplayCoords(self, position):
         """convert game coordinates to display coordinates"""
-        display = position + np.array([[1, 1]]).T*self.game.segmentRadius
+        display = position + vector(1, 1)*self.game.segmentRadius
         display = np.matmul(np.array([[1, 0], [0, -1]]), display)
-        display += np.array([[0, self.game.bounds + 2*self.game.segmentRadius]]).T
+        display += vector(0, self.game.bounds + 2*self.game.segmentRadius)
         display *= self.scaling
         return display.astype(np.int32)
 
@@ -69,7 +73,7 @@ class SnakeGameRenderer:
         """render the current state of the game"""
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                game.renderEnabled = False
+                self.game.renderEnabled = False
                 pygame.quit()
                 return
         self.screen.fill(self.GRAY)
@@ -93,13 +97,13 @@ class SnakeGame:
         self.bounds = 10
 
         # TODO randomly initialize starting position
-        self.heading = np.array([[0, 1]], dtype=np.double).T
+        self.heading = vector(0, 1)
         self.segments = 3
         self.segmentFollowDist = 0.75
-        self.position = [np.array([[8, 6 - self.segmentFollowDist * y]], dtype=np.double).T for y in range(self.segments)]
+        self.position = [vector(8, 6 - self.segmentFollowDist * y) for y in range(self.segments)]
 
         self.pathResolution = 0.01
-        self.path = [np.array([[8, 6 - self.pathResolution * y]], dtype=np.double).T for y in range(1+int(ceil((self.segments-1) * self.segmentFollowDist / self.pathResolution)))]
+        self.path = [vector(8, 6 - self.pathResolution * y) for y in range(1+int(ceil((self.segments-1) * self.segmentFollowDist / self.pathResolution)))]
         self.segmentRadius = 0.5
 
         self.generateGoal()
@@ -181,7 +185,7 @@ class SnakeGame:
         # arbitrary number of attempts before giving up and waiting for the next timestep
         # we don't want to hold up the loop
         for __ in range(10):
-            goal = np.array([[random(), random()]], dtype=np.double).T * self.bounds
+            goal = vector(random(), random()) * self.bounds
             for segment in self.position:
                 # arbitrarily said 1 want a 1/2 segment gap
                 if not dist(segment - goal) >= 3*self.segmentRadius:
