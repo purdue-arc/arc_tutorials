@@ -33,7 +33,7 @@ from geometry_msgs.msg import Twist, PoseArray, Pose, Point, PointStamped
 from std_msgs.msg import Int32, Bool
 
 import numpy as np
-from random import sample
+from random import random
 import pygame
 from threading import Lock
 from math import sqrt, ceil
@@ -51,7 +51,7 @@ class SnakeGameRenderer:
 
     def __init__(self, game):
         self.game = game
-        self.scaling = rospy.get_param('~/rendering/scaling', 100)
+        self.scaling = rospy.get_param('~/rendering/scaling', 50)
         windowSize = int((game.bounds + 2*game.segmentRadius) * self.scaling)
         pygame.init()
         self.screen = pygame.display.set_mode((windowSize, windowSize))
@@ -75,7 +75,8 @@ class SnakeGameRenderer:
         self.screen.fill(self.GRAY)
         radius = int(self.game.segmentRadius * self.scaling)
         # Draw the goal
-        pygame.draw.circle(self.screen, self.RED, self.toDisplayCoords(self.game.goalPosition), radius)
+        if self.game.goalPosition:
+            pygame.draw.circle(self.screen, self.RED, self.toDisplayCoords(self.game.goalPosition), radius)
         # Draw segments
         for position in self.game.position[1:]:
             pygame.draw.circle(self.screen, self.GREEN, self.toDisplayCoords(position), radius)
@@ -128,8 +129,9 @@ class SnakeGame:
             rotationMatrix = np.array([[cosTheta, -sinTheta], [sinTheta, cosTheta]])
             heading = np.matmul(rotationMatrix, self.heading)
 
+            # TODO limit max angle or implement failure on self intersect
+
             # Check bounds
-            # TODO, didn't seem to work
             if np.count_nonzero(np.logical_and(headPosition >= 0, headPosition < self.bounds)) != 2:
                 self.active = False
             else:
@@ -160,8 +162,8 @@ class SnakeGame:
                     self.position.extend([self.path[-1]] * (self.segments - segmentIndex))
 
                 # Check goal
-                if dist(headPosition - self.goalPosition) <= self.segmentRadius:
-                    self.segments = 5
+                if self.goalPosition and dist(headPosition - self.goalPosition) <= self.segmentRadius:
+                    self.segments += 1
                     self.generateGoal()
 
         if self.renderEnabled:
@@ -169,8 +171,17 @@ class SnakeGame:
 
     def generateGoal(self):
         """generate a goal position that isn't occupied"""
-        # TODO random sample
-        self.goalPosition = np.array([[4, 6]], dtype=np.double).T
+        self.goalPosition = None
+        # arbitrary number of attempts before giving up and waiting for the next timestep
+        # we don't want to hold up the loop
+        for __ in range(10):
+            goal = np.array([[random(), random()]], dtype=np.double).T * self.bounds
+            for segment in self.position:
+                # arbitrarily said 1 want a 1/2 segment gap
+                if not dist(segment - goal) >= 3*self.segmentRadius:
+                    break
+                self.goalPosition = goal
+                return
 
 class ThreadedCommand:
     def __init__(self):
@@ -217,11 +228,12 @@ if __name__ == "__main__":
             poseMsg.poses = [Pose(position=Point(x=x, y=y)) for x, y in snakeGame.position]
             posePub.publish(poseMsg)
 
-            goalMsg = PointStamped()
-            goalMsg.header.stamp = timestamp
-            goalMsg.header.frame_id = frame_id
-            goalMsg.point.x, goalMsg.point.y = snakeGame.goalPosition
-            goalPub.publish(goalMsg)
+            if snakeGame.goalPosition:
+                goalMsg = PointStamped()
+                goalMsg.header.stamp = timestamp
+                goalMsg.header.frame_id = frame_id
+                goalMsg.point.x, goalMsg.point.y = snakeGame.goalPosition
+                goalPub.publish(goalMsg)
 
             scorePub.publish(snakeGame.segments)
             activePub.publish(snakeGame.active)
