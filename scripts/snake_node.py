@@ -42,6 +42,46 @@ def dist(vector):
     """calculate the euclidian distance of a numpy vector"""
     return sqrt(np.sum(np.square(vector)))
 
+class SnakeGameRenderer:
+    """a helper class to render the Snake game in pygame"""
+    GRAY = (200, 200, 200)
+    RED = (255, 0, 0)
+    GREEN = (0, 200, 0)
+    YELLOW = (150, 200, 0)
+
+    def __init__(self, game):
+        self.game = game
+        self.scaling = rospy.get_param('~/rendering/scaling', 100)
+        windowSize = int((game.bounds + 2*game.segmentRadius) * self.scaling)
+        pygame.init()
+        self.screen = pygame.display.set_mode((windowSize, windowSize))
+        self.render()
+
+    def toDisplayCoords(self, position):
+        """convert game coordinates to display coordinates"""
+        display = position + np.array([[1, 1]]).T*self.game.segmentRadius
+        display = np.matmul(np.array([[1, 0], [0, -1]]), display)
+        display += np.array([[0, self.game.bounds + 2*self.game.segmentRadius]]).T
+        display *= self.scaling
+        return display.astype(np.int32)
+
+    def render(self):
+        """render the current state of the game"""
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                game.renderEnabled = False
+                pygame.quit()
+                return
+        self.screen.fill(self.GRAY)
+        radius = int(self.game.segmentRadius * self.scaling)
+        # Draw the goal
+        pygame.draw.circle(self.screen, self.RED, self.toDisplayCoords(self.game.goalPosition), radius)
+        # Draw segments
+        for position in self.game.position[1:]:
+            pygame.draw.circle(self.screen, self.GREEN, self.toDisplayCoords(position), radius)
+        # Draw the head in a different color
+        pygame.draw.circle(self.screen, self.YELLOW, self.toDisplayCoords(self.game.position[0]), radius)
+        pygame.display.flip()
 
 class SnakeGame:
     """A simple game of Snake with ROS bindings"""
@@ -63,12 +103,10 @@ class SnakeGame:
 
         self.generateGoal()
 
-        self.renderEnabled = True
+        self.renderEnabled = rospy.get_param('~/rendering/enabled', True)
         if self.renderEnabled:
-            pygame.init()
-            self.scaling = 100
-            self.screen = pygame.display.set_mode(((self.bounds+1)*self.scaling, (self.bounds+1)*self.scaling))
-            self.render()
+            self.renderer = SnakeGameRenderer(self)
+            self.renderer.render()
 
     def step(self, nextCommand):
         """advance one time-step in the game"""
@@ -116,9 +154,10 @@ class SnakeGame:
                             self.path = self.path[:pathIndex+1]
                             break
 
-                # confirm all previously spawned segments still have a position
-                if not segmentIndex >= len(self.position):
-                    raise Exception('cannot solve for segment positions')
+
+                # place any waiting-to-spawn segments at the end
+                if not segmentIndex >= self.segments:
+                    self.position.extend([self.path[-1]] * (self.segments - segmentIndex))
 
                 # Check goal
                 if dist(headPosition - self.goalPosition) <= self.segmentRadius:
@@ -126,36 +165,12 @@ class SnakeGame:
                     self.generateGoal()
 
         if self.renderEnabled:
-            self.render()
+            self.renderer.render()
 
     def generateGoal(self):
         """generate a goal position that isn't occupied"""
         # TODO random sample
         self.goalPosition = np.array([[4, 6]], dtype=np.double).T
-
-    def toDisplayCoords(self, position):
-        """convert cartesian coordinates to display coordinates"""
-        display = np.array([[0.5, 0.5]]).T + position
-        display = np.matmul(np.array([[1, 0], [0, -1]]), display)
-        display += np.array([[0, self.bounds]]).T
-        display *= self.scaling
-        return display.astype(np.int32)
-
-    def render(self):
-        """render the current state of the game"""
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                self.renderEnabled = False
-                pygame.quit()
-                return
-        self.screen.fill((200, 200, 200))
-        pygame.draw.circle(self.screen, (255, 0, 0), self.toDisplayCoords(self.goalPosition), int(self.segmentRadius*self.scaling))
-        if self.segments > len(self.position):
-            pygame.draw.circle(self.screen, (0, 200, 0), self.toDisplayCoords(self.path[-1]), int(self.segmentRadius*self.scaling))
-        for position in self.position[1:]:
-            pygame.draw.circle(self.screen, (0, 200, 0), self.toDisplayCoords(position), int(self.segmentRadius*self.scaling))
-        pygame.draw.circle(self.screen, (150, 200, 0), self.toDisplayCoords(self.position[0]), int(self.segmentRadius*self.scaling))
-        pygame.display.flip()
 
 class ThreadedCommand:
     def __init__(self):
@@ -182,7 +197,6 @@ if __name__ == "__main__":
     activePub = rospy.Publisher('active', Bool, queue_size=3)
     commandSub = rospy.Subscriber('cmd_vel', Twist, commandCb, threadedCommand)
 
-    # snakeGame.renderEnabled = rospy.get_param('~/renderEnabled', False)
     frame_id = rospy.get_param('~/frame_id', 'game')
 
     # main loop
