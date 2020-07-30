@@ -193,8 +193,11 @@ class ThreadedCommand:
 def commandCb(commandMsg, threadedCommand):
     """callback for command messages for snake"""
     threadedCommand.lock.acquire()
-    threadedCommand.command = (commandMsg.linear.x, commandMsg.angular.z)
     threadedCommand.lastTime = rospy.Time.now()
+    if commandMsg.linear.x < 0:
+        rospy.logwarn('ignoring negative linear velocity command')
+        commandMsg.linear.x = 0
+    threadedCommand.command = (commandMsg.linear.x, commandMsg.angular.z)
     threadedCommand.lock.release()
 
 if __name__ == "__main__":
