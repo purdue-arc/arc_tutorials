@@ -75,7 +75,7 @@ class SnakeGameRenderer:
         self.screen.fill(self.GRAY)
         radius = int(self.game.segmentRadius * self.scaling)
         # Draw the goal
-        if self.game.goalPosition:
+        if not self.game.goalPosition is None:
             pygame.draw.circle(self.screen, self.RED, self.toDisplayCoords(self.game.goalPosition), radius)
         # Draw segments
         for position in self.game.position[1:]:
@@ -162,7 +162,7 @@ class SnakeGame:
                     self.position.extend([self.path[-1]] * (self.segments - segmentIndex))
 
                 # Check goal
-                if self.goalPosition and dist(headPosition - self.goalPosition) <= self.segmentRadius:
+                if not self.goalPosition is None and dist(headPosition - self.goalPosition) <= self.segmentRadius:
                     self.segments += 1
                     self.generateGoal()
 
@@ -179,6 +179,7 @@ class SnakeGame:
             for segment in self.position:
                 # arbitrarily said 1 want a 1/2 segment gap
                 if not dist(segment - goal) >= 3*self.segmentRadius:
+                    # BUG this seemed to not work once
                     break
                 self.goalPosition = goal
                 return
@@ -228,7 +229,7 @@ if __name__ == "__main__":
             poseMsg.poses = [Pose(position=Point(x=x, y=y)) for x, y in snakeGame.position]
             posePub.publish(poseMsg)
 
-            if snakeGame.goalPosition:
+            if not snakeGame.goalPosition is None:
                 goalMsg = PointStamped()
                 goalMsg.header.stamp = timestamp
                 goalMsg.header.frame_id = frame_id
