@@ -36,15 +36,21 @@ import numpy as np
 from random import random
 import pygame
 from threading import Lock
-from math import sqrt, ceil
-
-def dist(vector):
-    """calculate the euclidian distance of a numpy vector"""
-    return sqrt(np.sum(np.square(vector)))
+import math
+from angles import shortest_angular_distance
+from tf import transformations as tfs
 
 def vector(x, y):
     """helper function to create column vectors in numpy"""
     return np.array([[x, y]], dtype=np.double).T
+
+def getHeadingAngle(vector):
+    """helper function to find heading angle from vector"""
+    return math.atan2(vector[1], vector[0])
+
+def getQuaternion(vector):
+    """helper function to get the quaternion representation of a heading angle"""
+    return tfs.quaternion_from_euler(0, 0, heading)
 
 class SnakeGameRenderer:
     """a helper class to render the Snake game in pygame"""
@@ -102,9 +108,9 @@ class SnakeGame:
         self.segments = 3
 
         # TODO randomly initialize starting position
-        self.heading = vector(0, 1)
+        self.headingVector = vector(0, 1)
         self.position = [vector(8, 6 - self.segmentFollowDist * y) for y in range(self.segments)]
-        self.path = [vector(8, 6 - self.pathResolution * y) for y in range(1+int(ceil((self.segments-1) * self.segmentFollowDist / self.pathResolution)))]
+        self.path = [vector(8, 6 - self.pathResolution * y) for y in range(1+int(math.ceil((self.segments-1) * self.segmentFollowDist / self.pathResolution)))]
 
         self.generateGoal()
 
@@ -124,16 +130,24 @@ class SnakeGame:
             deltaT = (now - self.lastUpdateTime).to_sec()
             self.lastUpdateTime = now
 
-            # update head position
-            headPosition = self.position[0] + nextCommand[0] * deltaT * self.heading
-
             # update heading
-            sinTheta = np.sin(nextCommand[1] * deltaT)
-            cosTheta = np.cos(nextCommand[1] * deltaT)
-            rotationMatrix = np.array([[cosTheta, -sinTheta], [sinTheta, cosTheta]])
-            heading = np.matmul(rotationMatrix, self.heading)
+            rotationMatrix = tfs.rotation_matrix(nextCommand[1]*deltaT, (0, 0, 1))[:2,:2]
+            heading = np.matmul(rotationMatrix, self.headingVector)
 
-            # TODO max angle and don't check first segment (or two?) for collision
+            # limit angle to +/- 90 degrees
+            angle = shortest_angular_distance(getHeadingAngle(self.position[0] - self.position[1]), getHeadingAngle(self.headingVector))
+            if angle > math.pi/4:
+                rotationMatrix = tfs.rotation_matrix(math.pi/4, (0, 0, 1))[:2,:2]
+                perpendicularVector = self.position[0] - self.position[1]
+                heading = np.matmul(rotationMatrix, perpendicularVector)
+            elif angle < -math.pi/4:
+                rotationMatrix = tfs.rotation_matrix(-math.pi/4, (0, 0, 1))[:2,:2]
+                perpendicularVector = self.position[0] - self.position[1]
+                heading = np.matmul(rotationMatrix, perpendicularVector)
+            print angle
+
+            # update head position
+            headPosition = self.position[0] + nextCommand[0] * deltaT * heading
 
             outOfBounds = np.count_nonzero(np.logical_and(headPosition >= 0, headPosition < self.bounds)) != 2
             selfIntersect = self.getDistToSelf(headPosition, startIndex=2) < self.segmentFollowDist
@@ -141,18 +155,18 @@ class SnakeGame:
                 self.active = False
             else:
                 # update path
-                if dist(headPosition - self.position[0]) >= self.pathResolution:
+                if tfs.vector_norm(headPosition - self.position[0]) >= self.pathResolution:
                     self.path.insert(0, headPosition)
 
                 # update head position
                 self.position[0] = headPosition
-                self.heading = heading
+                self.headingVector = heading
 
                 # Update tail
                 segmentIndex = 1
                 self.position = self.position[:1]
                 for pathIndex, position in enumerate(self.path):
-                    if dist(self.position[segmentIndex-1] - position) >= self.segmentFollowDist:
+                    if tfs.vector_norm(self.position[segmentIndex-1] - position) >= self.segmentFollowDist:
                         self.position.append(position)
                         segmentIndex += 1
                         if segmentIndex >= self.segments:
@@ -161,13 +175,12 @@ class SnakeGame:
                             self.path = self.path[:pathIndex+1]
                             break
 
-
                 # place any waiting-to-spawn segments at the end
                 if not segmentIndex >= self.segments:
                     self.position.extend([self.path[-1]] * (self.segments - segmentIndex))
 
                 # Check goal
-                if not self.goalPosition is None and dist(headPosition - self.goalPosition) <= self.segmentRadius:
+                if not self.goalPosition is None and tfs.vector_norm(headPosition - self.goalPosition) <= self.segmentRadius:
                     self.segments += 1
                     self.generateGoal()
 
