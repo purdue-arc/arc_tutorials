@@ -136,12 +136,7 @@ class SnakeGame:
             # TODO max angle and don't check first segment (or two?) for collision
 
             outOfBounds = np.count_nonzero(np.logical_and(headPosition >= 0, headPosition < self.bounds)) != 2
-            selfIntersect = False
-            for segment in self.position[1:]:
-                if dist(headPosition - segment) < self.segmentFollowDist:
-                    selfIntersect = True
-                    break
-
+            selfIntersect = self.getDistToSelf(headPosition, startIndex=2) < self.segmentFollowDist
             if outOfBounds or selfIntersect:
                 self.active = False
             else:
@@ -186,15 +181,14 @@ class SnakeGame:
         # we don't want to hold up the loop
         for __ in range(10):
             goal = vector(random(), random()) * self.bounds
-            valid = True
-            for segment in self.position:
-                # arbitrarily said I want a 1/2 segment gap
-                if not dist(segment - goal) >= 3*self.segmentRadius:
-                    valid = False
-                    break
-            if valid:
+            # arbitrarily said I want a 1/2 segment gap
+            if self.getDistToSelf(goal) >= 3 * self.segmentRadius:
                 self.goalPosition = goal
                 return
+
+    def getDistToSelf(self, position, startIndex=0):
+        """get the minimum distance of a position to any segment"""
+        return min([tfs.vector_norm(segment - position) for segment in self.position[startIndex:]])
 
 class ThreadedCommand:
     def __init__(self):
