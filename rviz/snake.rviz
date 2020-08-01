@@ -27,7 +27,7 @@ Panels:
     SyncSource: ""
   - Class: rviz_plugin_tutorials/Teleop
     Name: Teleop
-    Topic: cmd_vel
+    Topic: snake/cmd_vel
 Preferences:
   PromptSaveOnExit: true
 Toolbars:

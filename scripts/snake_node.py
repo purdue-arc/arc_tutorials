@@ -71,7 +71,7 @@ class SnakeGameRenderer:
     def __init__(self, bounds, segmentRadius):
         self.bounds = bounds
         self.segmentRadius = segmentRadius
-        self.scaling = rospy.get_param('~/rendering/scaling', 50)
+        self.scaling = rospy.get_param('~rendering/scaling', 50)
         windowSize = int((bounds + 2*segmentRadius) * self.scaling)
         pygame.init()
         self.screen = pygame.display.set_mode((windowSize, windowSize))
@@ -106,14 +106,14 @@ class SnakeGame:
     """A simple game of Snake with ROS bindings"""
     def __init__(self):
         """constructor"""
-        self.bounds = rospy.get_param('~/bounds', 10)
-        self.pathResolution = rospy.get_param('~/snake/path_resolution', 0.01)
-        self.segmentFollowDist = rospy.get_param('~/snake/segment_follow_dist', 0.75)
-        self.segmentRadius = rospy.get_param('~/snake/segment_radius', 0.5)
+        self.bounds = rospy.get_param('~bounds', 10)
+        self.pathResolution = rospy.get_param('~snake/path_resolution', 0.01)
+        self.segmentFollowDist = rospy.get_param('~snake/segment_follow_dist', 0.75)
+        self.segmentRadius = rospy.get_param('~snake/segment_radius', 0.5)
 
         self.reset()
 
-        self.renderEnabled = rospy.get_param('~/rendering/enabled', True)
+        self.renderEnabled = rospy.get_param('~render/enabled', True)
         if self.renderEnabled:
             self.renderer = SnakeGameRenderer(self.bounds, self.segmentRadius)
             self.render()
@@ -242,9 +242,9 @@ class SnakeGameROS:
         self.lastCommand = (0.0, 0.0)
         self.lastCommandTime = rospy.Time.now()
 
-        self.frame_id = rospy.get_param('~/frame_id', 'game')
-        self.timeout = rospy.get_param('~/timeout', 1.0)
-        rate = rospy.Rate(rospy.get_param('~/rate', 30)) #Hz
+        self.frame_id = rospy.get_param('~frame_id', 'game')
+        self.timeout = rospy.get_param('~timeout', 1.0)
+        rate = rospy.Rate(rospy.get_param('~rate', 30)) #Hz
 
         # Publishers
         self.posePub = rospy.Publisher('snake/pose', PoseArray, queue_size=3)

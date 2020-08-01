@@ -1,0 +1,7 @@
+<launch>
+  <arg name="use_rviz" default="true"/>
+  <arg name="use_rqt_steering" default="false"/>
+  <arg name="use_pygame" default="false"/>
+
+  <include file="$(find snake_tutorial)/launch/snake_demo.launch" pass_all_args="true"/>
+</launch>
