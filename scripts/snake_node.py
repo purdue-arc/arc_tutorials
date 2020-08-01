@@ -29,7 +29,7 @@
 ################################################################################
 
 import rospy
-from geometry_msgs.msg import Twist, PoseArray, Pose, Point, PointStamped
+from geometry_msgs.msg import Twist, PoseArray, Pose,  PointStamped
 from std_msgs.msg import Int32, Bool
 from std_srvs.srv import Empty, EmptyResponse
 
@@ -256,7 +256,7 @@ class SnakeGameROS:
         commandSub = rospy.Subscriber('cmd_vel', Twist, self.commandCallback)
 
         # Services
-        resetServ = rospy.Service('reset', Empty, self.resetCallback)
+        resetSrv = rospy.Service('reset', Empty, self.resetCallback)
 
         try:
             while not rospy.is_shutdown():
@@ -296,8 +296,21 @@ class SnakeGameROS:
         poseMsg = PoseArray()
         poseMsg.header.stamp = now
         poseMsg.header.frame_id = self.frame_id
-        # TODO orientation
-        poseMsg.poses = [Pose(position=Point(x=x, y=y)) for x, y in self.game.position]
+        poseMsg.poses = []
+        for index, position in enumerate(self.game.position):
+            pose = Pose()
+            pose.position.x = position[0]
+            pose.position.y = position[1]
+            quat = None
+            if index == 0:
+                quat = getQuaternion(self.game.headingVector)
+            else:
+                quat = getQuaternion(self.game.position[index-1] - position)
+            pose.orientation.x = quat[0]
+            pose.orientation.y = quat[1]
+            pose.orientation.z = quat[2]
+            pose.orientation.w = quat[3]
+            poseMsg.poses.append(pose)
         self.posePub.publish(poseMsg)
 
         if not self.game.goalPosition is None:
