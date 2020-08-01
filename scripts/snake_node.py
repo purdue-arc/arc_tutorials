@@ -40,7 +40,7 @@ import math
 from angles import shortest_angular_distance
 from tf import transformations as tfs
 
-def vector(x, y):
+def makeVector(x, y):
     """helper function to create column vectors in numpy"""
     return np.array([[x, y]], dtype=np.double).T
 
@@ -77,9 +77,9 @@ class SnakeGameRenderer:
 
     def toDisplayCoords(self, position):
         """convert game coordinates to display coordinates"""
-        display = position + vector(1, 1) * self.segmentRadius
+        display = position + makeVector(1, 1) * self.segmentRadius
         display = np.matmul(np.array([[1, 0], [0, -1]]), display)
-        display += vector(0, self.bounds + 2*self.segmentRadius)
+        display += makeVector(0, self.bounds + 2*self.segmentRadius)
         display *= self.scaling
         return display.astype(np.int32)
 
@@ -110,21 +110,32 @@ class SnakeGame:
         self.segmentFollowDist = rospy.get_param('~/snake/segment_follow_dist', 0.75)
         self.segmentRadius = rospy.get_param('~/snake/segment_radius', 0.5)
 
-        self.active = True
-        self.lastUpdateTime = None
-        self.segments = 3
-
-        # TODO randomly initialize starting position
-        self.headingVector = vector(0, 1)
-        self.position = [vector(8, 6 - self.segmentFollowDist * y) for y in range(self.segments)]
-        self.path = [vector(8, 6 - self.pathResolution * y) for y in range(1+int(math.ceil((self.segments-1) * self.segmentFollowDist / self.pathResolution)))]
-
-        self.generateGoal()
+        self.reset()
 
         self.renderEnabled = rospy.get_param('~/rendering/enabled', True)
         if self.renderEnabled:
             self.renderer = SnakeGameRenderer(self.bounds, self.segmentRadius)
             self.render()
+
+    def reset(self):
+        """reset the game"""
+        self.active = True
+        self.lastUpdateTime = None
+        self.segments = 3
+        self.generatePostion()
+        self.generateGoal()
+        pass
+
+    def generatePostion(self):
+        """the initial starting position / path"""
+        # TODO randomize?
+        self.headingVector = makeVector(0, 1)
+        x = 6
+        y_max = 8
+        y_min = y_max - (self.segments-1) * self.segmentFollowDist
+        self.position = [makeVector(x, y) for y in np.linspace(y_max, y_min, self.segments)]
+        # numpy.arange isn't recommended for non integer step sizes, so use linspace instead
+        self.path = [makeVector(x, y) for y in np.linspace(y_max, y_min, (y_max - y_min)/self.pathResolution)]
 
     def step(self, (linearVelocity, angularVelocity)):
         """advance one time-step in the game"""
@@ -204,7 +215,7 @@ class SnakeGame:
         # arbitrary number of attempts before giving up and waiting for the next timestep
         # we don't want to hold up the loop
         for __ in range(10):
-            goal = vector(random(), random()) * self.bounds
+            goal = makeVector(random(), random()) * self.bounds
             # arbitrarily said I want a 1/2 segment gap
             if self.getDistToSelf(goal) >= 3 * self.segmentRadius:
                 self.goalPosition = goal
