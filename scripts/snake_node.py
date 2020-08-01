@@ -247,16 +247,16 @@ class SnakeGameROS:
         rate = rospy.Rate(rospy.get_param('~/rate', 30)) #Hz
 
         # Publishers
-        self.posePub = rospy.Publisher('pose', PoseArray, queue_size=3)
-        self.goalPub = rospy.Publisher('goal', PointStamped, queue_size=3)
-        self.scorePub = rospy.Publisher('score', Int32, queue_size=3)
-        self.activePub = rospy.Publisher('active', Bool, queue_size=3)
+        self.posePub = rospy.Publisher('snake/pose', PoseArray, queue_size=3)
+        self.goalPub = rospy.Publisher('snake/goal', PointStamped, queue_size=3)
+        self.scorePub = rospy.Publisher('snake/score', Int32, queue_size=3)
+        self.activePub = rospy.Publisher('snake/active', Bool, queue_size=3)
 
         # Subscribers
-        commandSub = rospy.Subscriber('cmd_vel', Twist, self.commandCallback)
+        commandSub = rospy.Subscriber('snake/cmd_vel', Twist, self.commandCallback)
 
         # Services
-        resetSrv = rospy.Service('reset', Empty, self.resetCallback)
+        resetSrv = rospy.Service('snake/reset', Empty, self.resetCallback)
 
         try:
             while not rospy.is_shutdown():
