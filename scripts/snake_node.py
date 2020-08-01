@@ -59,6 +59,10 @@ class SnakeGameRenderer:
     GREEN = (0, 200, 0)
     YELLOW = (150, 200, 0)
 
+    class ShutdownException(Exception):
+        """Exception for when pygame is shut down"""
+        pass
+
     def __init__(self, bounds, segmentRadius):
         self.bounds = bounds
         self.segmentRadius = segmentRadius
@@ -80,7 +84,7 @@ class SnakeGameRenderer:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
-                return False
+                raise SnakeGameRenderer.ShutdownException()
         self.screen.fill(self.GRAY)
         radius = int(self.segmentRadius * self.scaling)
         # Draw the goal
@@ -92,7 +96,6 @@ class SnakeGameRenderer:
         # Draw the head in a different color
         pygame.draw.circle(self.screen, self.YELLOW, self.toDisplayCoords(snakePosition[0]), radius)
         pygame.display.flip()
-        return True
 
 class SnakeGame:
     """A simple game of Snake with ROS bindings"""
@@ -117,7 +120,7 @@ class SnakeGame:
         self.renderEnabled = rospy.get_param('~/rendering/enabled', True)
         if self.renderEnabled:
             self.renderer = SnakeGameRenderer(self.bounds, self.segmentRadius)
-            self.renderEnabled = self.renderer.render(self.goalPosition, self.position)
+            self.render()
 
     def step(self, nextCommand):
         """advance one time-step in the game"""
@@ -185,7 +188,7 @@ class SnakeGame:
                     self.generateGoal()
 
         if self.renderEnabled:
-            self.renderEnabled = self.renderer.render(self.goalPosition, self.position)
+            self.render()
 
     def generateGoal(self):
         """generate a goal position that isn't occupied"""
@@ -202,6 +205,13 @@ class SnakeGame:
     def getDistToSelf(self, position, startIndex=0):
         """get the minimum distance of a position to any segment"""
         return min([tfs.vector_norm(segment - position) for segment in self.position[startIndex:]])
+
+    def render(self):
+        """render the current state of the game using a SnakeGameRenderer"""
+        try:
+            self.renderer.render(self.goalPosition, self.position)
+        except(SnakeGameRenderer.ShutdownException):
+            self.renderEnabled = False
 
 class ThreadedCommand:
     def __init__(self):
