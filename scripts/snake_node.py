@@ -31,6 +31,7 @@
 import rospy
 from geometry_msgs.msg import Twist, PoseArray, Pose, Point, PointStamped
 from std_msgs.msg import Int32, Bool
+from std_srvs.srv import Empty, EmptyResponse
 
 import numpy as np
 from random import random
@@ -232,62 +233,84 @@ class SnakeGame:
         except(SnakeGameRenderer.ShutdownException):
             self.renderEnabled = False
 
-class ThreadedCommand:
+class SnakeGameROS:
+    """ROS wrapper for the snake game"""
     def __init__(self):
+        """constructor"""
+        self.game = SnakeGame()
         self.lock = Lock()
-        self.command = (0, 0)
-        self.lastTime = rospy.Time.now()
+        self.lastCommand = (0.0, 0.0)
+        self.lastCommandTime = rospy.Time.now()
 
-def commandCb(commandMsg, threadedCommand):
-    """callback for command messages for snake"""
-    threadedCommand.lock.acquire()
-    threadedCommand.lastTime = rospy.Time.now()
-    threadedCommand.command = (commandMsg.linear.x, commandMsg.angular.z)
-    threadedCommand.lock.release()
+        self.frame_id = rospy.get_param('~/frame_id', 'game')
+        self.timeout = rospy.get_param('~/timeout', 1.0)
+        rate = rospy.Rate(rospy.get_param('~/rate', 30)) #Hz
+
+        # Publishers
+        self.posePub = rospy.Publisher('pose', PoseArray, queue_size=3)
+        self.goalPub = rospy.Publisher('goal', PointStamped, queue_size=3)
+        self.scorePub = rospy.Publisher('score', Int32, queue_size=3)
+        self.activePub = rospy.Publisher('active', Bool, queue_size=3)
+
+        # Subscribers
+        commandSub = rospy.Subscriber('cmd_vel', Twist, self.commandCallback)
+
+        # Services
+        resetServ = rospy.Service('reset', Empty, self.resetCallback)
+
+        try:
+            while not rospy.is_shutdown():
+                self.loopOnce()
+                rate.sleep()
+        except rospy.ROSInterruptException:
+            # catch exception thrown when ROS is shutdown during sleep
+            pass
+
+    def commandCallback(self, commandMsg):
+        """callback for command messages for snake"""
+        self.lock.acquire()
+        self.lastCommandTime = rospy.Time.now()
+        self.lastCommand = (commandMsg.linear.x, commandMsg.angular.z)
+        self.lock.release()
+
+    def resetCallback(self, __):
+        """callback for game reset service"""
+        self.lock.acquire()
+        self.game.reset()
+        self.lastCommand = (0.0, 0.0)
+        self.lock.release()
+        return EmptyResponse()
+
+    def loopOnce(self):
+        """main loop"""
+        self.lock.acquire()
+        now = rospy.Time.now()
+
+        # iterate game one step
+        if (now - self.lastCommandTime).to_sec() >= self.timeout:
+            self.game.step((0.0, 0.0))
+        else:
+            self.game.step(self.lastCommand)
+
+        # send status messages
+        poseMsg = PoseArray()
+        poseMsg.header.stamp = now
+        poseMsg.header.frame_id = self.frame_id
+        # TODO orientation
+        poseMsg.poses = [Pose(position=Point(x=x, y=y)) for x, y in self.game.position]
+        self.posePub.publish(poseMsg)
+
+        if not self.game.goalPosition is None:
+            goalMsg = PointStamped()
+            goalMsg.header.stamp = now
+            goalMsg.header.frame_id = self.frame_id
+            goalMsg.point.x, goalMsg.point.y = self.game.goalPosition
+            self.goalPub.publish(goalMsg)
+
+        self.scorePub.publish(self.game.segments)
+        self.activePub.publish(self.game.active)
+        self.lock.release()
 
 if __name__ == "__main__":
     rospy.init_node('snake_node', anonymous=False)
-
-    snakeGame = SnakeGame()
-    threadedCommand = ThreadedCommand()
-
-    posePub = rospy.Publisher('pose', PoseArray, queue_size=3)
-    goalPub = rospy.Publisher('goal', PointStamped, queue_size=3)
-    scorePub = rospy.Publisher('score', Int32, queue_size=3)
-    activePub = rospy.Publisher('active', Bool, queue_size=3)
-    commandSub = rospy.Subscriber('cmd_vel', Twist, commandCb, threadedCommand)
-
-    frame_id = rospy.get_param('~/frame_id', 'game')
-
-    # main loop
-    try:
-        rate = rospy.Rate(rospy.get_param('~/rate', 30)) # 10 Hz
-        while not rospy.is_shutdown():
-            timestamp = rospy.Time.now()
-
-            threadedCommand.lock.acquire()
-            snakeGame.step(threadedCommand.command)
-            # TODO timeout
-            threadedCommand.lock.release()
-
-            poseMsg = PoseArray()
-            poseMsg.header.stamp = timestamp
-            poseMsg.header.frame_id = frame_id
-            # TODO orientation
-            poseMsg.poses = [Pose(position=Point(x=x, y=y)) for x, y in snakeGame.position]
-            posePub.publish(poseMsg)
-
-            if not snakeGame.goalPosition is None:
-                goalMsg = PointStamped()
-                goalMsg.header.stamp = timestamp
-                goalMsg.header.frame_id = frame_id
-                goalMsg.point.x, goalMsg.point.y = snakeGame.goalPosition
-                goalPub.publish(goalMsg)
-
-            scorePub.publish(snakeGame.segments)
-            activePub.publish(snakeGame.active)
-
-            rate.sleep()
-    except rospy.ROSInterruptException:
-        # catch exception thrown when ROS is shutdown during sleep
-        pass
+    snakeGameROS = SnakeGameROS()
