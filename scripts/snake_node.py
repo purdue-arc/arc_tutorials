@@ -28,11 +28,13 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ################################################################################
 
+# ROS
 import rospy
-from geometry_msgs.msg import Twist, PoseArray, Pose,  PointStamped
+from geometry_msgs.msg import Twist, PoseArray, Pose, PointStamped
 from std_msgs.msg import Int32, Bool
 from std_srvs.srv import Empty, EmptyResponse
 
+# Python
 import numpy as np
 from random import random
 import pygame
