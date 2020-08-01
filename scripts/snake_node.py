@@ -50,7 +50,11 @@ def getHeadingAngle(vector):
 
 def getQuaternion(vector):
     """helper function to get the quaternion representation of a heading angle"""
-    return tfs.quaternion_from_euler(0, 0, heading)
+    return tfs.quaternion_from_euler(0, 0, getHeadingAngle(vector))
+
+def makeRotationMatrix(yaw):
+    """function to create a 2D rotation matrix from a yaw angle"""
+    return tfs.rotation_matrix(yaw, (0, 0, 1))[:2,:2]
 
 class SnakeGameRenderer:
     """a helper class to render the Snake game in pygame"""
@@ -122,7 +126,7 @@ class SnakeGame:
             self.renderer = SnakeGameRenderer(self.bounds, self.segmentRadius)
             self.render()
 
-    def step(self, nextCommand):
+    def step(self, (linearVelocity, angularVelocity)):
         """advance one time-step in the game"""
         if not self.lastUpdateTime:
             self.lastUpdateTime = rospy.Time.now()
@@ -134,43 +138,47 @@ class SnakeGame:
             self.lastUpdateTime = now
 
             # update heading
-            rotationMatrix = tfs.rotation_matrix(nextCommand[1]*deltaT, (0, 0, 1))[:2,:2]
-            heading = np.matmul(rotationMatrix, self.headingVector)
+            rotationMatrix = makeRotationMatrix(angularVelocity*deltaT)
+            headingVector = np.matmul(rotationMatrix, self.headingVector)
 
-            # limit angle to +/- 90 degrees
-            angle = shortest_angular_distance(getHeadingAngle(self.position[0] - self.position[1]), getHeadingAngle(self.headingVector))
+            # limit angle to +/- 45 degrees
+            bodyVector = tfs.unit_vector(self.position[0] - self.position[1])
+            angle = shortest_angular_distance(getHeadingAngle(bodyVector), getHeadingAngle(headingVector))
             if angle > math.pi/4:
-                rotationMatrix = tfs.rotation_matrix(math.pi/4, (0, 0, 1))[:2,:2]
-                perpendicularVector = self.position[0] - self.position[1]
-                heading = np.matmul(rotationMatrix, perpendicularVector)
+                rotationMatrix = makeRotationMatrix(math.pi/4)
+                headingVector = np.matmul(rotationMatrix, bodyVector)
             elif angle < -math.pi/4:
-                rotationMatrix = tfs.rotation_matrix(-math.pi/4, (0, 0, 1))[:2,:2]
-                perpendicularVector = self.position[0] - self.position[1]
-                heading = np.matmul(rotationMatrix, perpendicularVector)
-            print angle
+                rotationMatrix = makeRotationMatrix(-math.pi/4)
+                headingVector = np.matmul(rotationMatrix, bodyVector)
 
             # update head position
-            headPosition = self.position[0] + nextCommand[0] * deltaT * heading
+            if linearVelocity < 0:
+                rospy.logwarn('ignoring negative linear velocity command')
+                linearVelocity = 0
+            headPosition = self.position[0] + linearVelocity * deltaT * headingVector
 
             outOfBounds = np.count_nonzero(np.logical_and(headPosition >= 0, headPosition < self.bounds)) != 2
             selfIntersect = self.getDistToSelf(headPosition, startIndex=2) < self.segmentFollowDist
             if outOfBounds or selfIntersect:
                 self.active = False
+                rospy.loginfo('snake died due to ' +
+                    ('traveling out of bounds' if outOfBounds else '') +
+                    ('self intersection' if selfIntersect else ''))
             else:
                 # update path
-                if tfs.vector_norm(headPosition - self.position[0]) >= self.pathResolution:
-                    self.path.insert(0, headPosition)
+                if tfs.vector_norm(headPosition - self.path[0]) >= self.pathResolution:
+                    self.path.insert(0, np.copy(headPosition))
 
                 # update head position
                 self.position[0] = headPosition
-                self.headingVector = heading
+                self.headingVector = headingVector
 
                 # Update tail
                 segmentIndex = 1
-                self.position = self.position[:1]
+                self.position = self.position[:segmentIndex]
                 for pathIndex, position in enumerate(self.path):
                     if tfs.vector_norm(self.position[segmentIndex-1] - position) >= self.segmentFollowDist:
-                        self.position.append(position)
+                        self.position.append(np.copy(position))
                         segmentIndex += 1
                         if segmentIndex >= self.segments:
                             # if we aren't waiting to spawn new segments,
@@ -223,9 +231,6 @@ def commandCb(commandMsg, threadedCommand):
     """callback for command messages for snake"""
     threadedCommand.lock.acquire()
     threadedCommand.lastTime = rospy.Time.now()
-    if commandMsg.linear.x < 0:
-        rospy.logwarn('ignoring negative linear velocity command')
-        commandMsg.linear.x = 0
     threadedCommand.command = (commandMsg.linear.x, commandMsg.angular.z)
     threadedCommand.lock.release()
 
