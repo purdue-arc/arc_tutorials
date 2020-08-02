@@ -140,7 +140,7 @@ class SnakeGame:
         # numpy.arange isn't recommended for non integer step sizes, so use linspace instead
         self.path = [makeVector(x, y) for y in np.linspace(y_max, y_min, (y_max - y_min)/self.pathResolution)]
 
-    def step(self, (linearVelocity, angularVelocity)):
+    def step(self, linearVelocity, angularVelocity):
         """advance one time-step in the game"""
         if not self.lastUpdateTime:
             self.lastUpdateTime = rospy.Time.now()
@@ -239,10 +239,11 @@ class SnakeGameROS:
     """ROS wrapper for the snake game"""
     def __init__(self):
         """constructor"""
+        rospy.init_node('snake_node', anonymous=False)
+
         self.game = SnakeGame()
         self.lock = Lock()
-        self.lastCommand = (0.0, 0.0)
-        self.lastCommandTime = rospy.Time.now()
+        self.lastCommand = None
 
         self.frame_id = rospy.get_param('~frame_id', 'game')
         self.timeout = rospy.get_param('~timeout', 1.0)
@@ -255,10 +256,10 @@ class SnakeGameROS:
         self.activePub = rospy.Publisher('snake/active', Bool, queue_size=3)
 
         # Subscribers
-        commandSub = rospy.Subscriber('snake/cmd_vel', Twist, self.commandCallback)
+        rospy.Subscriber('snake/cmd_vel', Twist, self.commandCallback)
 
         # Services
-        resetSrv = rospy.Service('snake/reset', Empty, self.resetCallback)
+        rospy.Service('snake/reset', Empty, self.resetCallback)
 
         try:
             while not rospy.is_shutdown():
@@ -270,16 +271,14 @@ class SnakeGameROS:
 
     def commandCallback(self, commandMsg):
         """callback for command messages for snake"""
-        self.lock.acquire()
-        self.lastCommandTime = rospy.Time.now()
-        self.lastCommand = (commandMsg.linear.x, commandMsg.angular.z)
-        self.lock.release()
+        # Put this all in one tuple so that it is atomic
+        self.lastCommand = (rospy.Time.now(), commandMsg.linear.x, commandMsg.angular.z)
 
     def resetCallback(self, __):
         """callback for game reset service"""
         self.lock.acquire()
         self.game.reset()
-        self.lastCommand = (0.0, 0.0)
+        self.lastCommand = None
         self.lock.release()
         return EmptyResponse()
 
@@ -289,10 +288,12 @@ class SnakeGameROS:
         now = rospy.Time.now()
 
         # iterate game one step
-        if (now - self.lastCommandTime).to_sec() >= self.timeout:
-            self.game.step((0.0, 0.0))
-        else:
-            self.game.step(self.lastCommand)
+        if self.lastCommand:
+            lastCommandTime, lastLinearCommand, lastAngularCommand = self.lastCommand
+            if (now - lastCommandTime).to_sec() >= self.timeout:
+                self.game.step(0.0, 0.0)
+            else:
+                self.game.step(lastLinearCommand, lastAngularCommand)
 
         # send status messages
         poseMsg = PoseArray()
@@ -327,5 +328,4 @@ class SnakeGameROS:
         self.lock.release()
 
 if __name__ == "__main__":
-    rospy.init_node('snake_node', anonymous=False)
     snakeGameROS = SnakeGameROS()
