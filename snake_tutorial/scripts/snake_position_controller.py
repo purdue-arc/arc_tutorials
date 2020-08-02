@@ -30,11 +30,19 @@
 
 # ROS
 import rospy
-from geometry_msgs.msg import PoseArray, Point
+from geometry_msgs.msg import PoseArray, Pose
 from std_msgs.msg import Float64
+from std_srvs.srv import Empty, EmptyResponse
 
 # Python
 import math
+from threading import Lock
+
+def getAbsDistance(point1, point2):
+    """calculate Euclidian distance between two points"""
+    delta_x = point2[0] - point1[0]
+    delta_y = point2[1] - point1[1]
+    return math.sqrt(delta_x**2 + delta_y**2)
 
 class SnakePositionController:
     """Simple position controller for the snake"""
@@ -42,36 +50,70 @@ class SnakePositionController:
         """constructor"""
         rospy.init_node('snake_position_controller', anonymous=False)
 
-        self.positionCommand = []
+        self.poseQueue = []
+        self.lock = Lock()
+
+        self.poseTolerance = rospy.get_param('~poseTolerance', 0.5)
 
         # Publishers
         self.headingPub = rospy.Publisher('controller/heading', Float64, queue_size=1)
+        self.poseQueuePub = rospy.Publisher('controller/pose/queue', PoseArray, queue_size=1)
 
         # Subscribers
-        rospy.Subscriber('snake/pose', PoseArray, self.poseCallback)
-        rospy.Subscriber('controller/position', Point, self.positionCallback)
+        rospy.Subscriber('snake/pose', PoseArray, self.snakeCallback)
+        rospy.Subscriber('controller/pose', Pose, self.goalCallback)
+
+        # Services
+        rospy.Service('controller/pose/reset', Empty, self.resetCallback)
 
         rospy.spin()
 
-    def positionCallback(self, positionMsg):
-        """callback for position goal"""
-        # This operation is atomic, so we don't need a lock
-        self.positionCommand.append((positionMsg.x, positionMsg.y))
-        print self.positionCommand
+    def goalCallback(self, poseMsg):
+        """callback for pose goal"""
+        self.lock.acquire()
+        goal = (poseMsg.position.x, poseMsg.position.y)
+        if not self.poseQueue:
+            self.poseQueue.append(goal)
+            self.publishPoseQueue()
+        elif getAbsDistance(goal, self.poseQueue[-1]) > self.poseTolerance:
+            self.poseQueue.append(goal)
+            self.publishPoseQueue()
+        else:
+            rospy.loginfo_throttle(5.0, 'ignoring new goal that is too close to preceding goal')
+        self.lock.release()
 
-    def poseCallback(self, poseMsg):
+    def snakeCallback(self, poseMsg):
         """callback for poses from the snake"""
-        if self.positionCommand:
-            command_x, command_y = self.positionCommand[0]
-            error_x = command_x - poseMsg.poses[0].position.x
-            error_y = command_y - poseMsg.poses[0].position.y
+        self.lock.acquire()
+        if self.poseQueue:
+            pose = (poseMsg.poses[0].position.x, poseMsg.poses[0].position.y)
+            goal = self.poseQueue[0]
 
-            heading = math.atan2(error_y, error_x)
+            heading = math.atan2(goal[0] - pose[0], goal[1] - pose[1])
             self.headingPub.publish(heading)
 
-            if math.sqrt(error_x**2 + error_y**2) < 0.5:
-                self.positionCommand.pop(0)
-                print self.positionCommand
+            if getAbsDistance(goal, pose) < self.poseTolerance:
+                self.poseQueue.pop(0)
+                self.publishPoseQueue()
+        self.lock.release()
+
+    def resetCallback(self, __):
+        """reset the current pose callback queue"""
+        self.lock.acquire()
+        self.poseQueue = []
+        self.publishPoseQueue()
+        self.lock.release()
+        return EmptyResponse()
+
+    def publishPoseQueue(self):
+        """publish the current state of the pose queue"""
+        poseArrayMsg = PoseArray()
+        poseArrayMsg.poses = []
+        for pose in self.poseQueue:
+            poseMsg = Pose()
+            poseMsg.position.x, poseMsg.position.y = pose
+            poseArrayMsg.poses.append(poseMsg)
+        self.poseQueuePub.publish(poseArrayMsg)
 
 if __name__ == "__main__":
     controller = SnakePositionController()
