@@ -30,7 +30,7 @@
 
 # ROS
 import rospy
-from geometry_msgs.msg import PoseArray, Pose
+from geometry_msgs.msg import PoseArray, Pose, Point
 from std_msgs.msg import Float64
 from std_srvs.srv import Empty, EmptyResponse
 
@@ -50,34 +50,35 @@ class SnakePositionController:
         """constructor"""
         rospy.init_node('snake_position_controller', anonymous=False)
 
-        self.poseQueue = []
+        self.goalQueue = []
         self.lock = Lock()
 
-        self.poseTolerance = rospy.get_param('~poseTolerance', 0.5)
+        self.goalTolerance = rospy.get_param('~goalTolerance', 0.5)
 
         # Publishers
         self.headingPub = rospy.Publisher('controller/heading', Float64, queue_size=1)
-        self.poseQueuePub = rospy.Publisher('controller/pose/queue', PoseArray, queue_size=1)
+        self.goalQueuePub = rospy.Publisher('controller/goal/queue', PoseArray, queue_size=1)
+        self.goalPub = rospy.Publisher('controller/goal/current', Point, queue_size=1)
 
         # Subscribers
         rospy.Subscriber('snake/pose', PoseArray, self.snakeCallback)
-        rospy.Subscriber('controller/pose', Pose, self.goalCallback)
+        rospy.Subscriber('controller/goal', Point, self.goalCallback)
 
         # Services
-        rospy.Service('controller/pose/reset', Empty, self.resetCallback)
+        rospy.Service('controller/goal/reset', Empty, self.resetCallback)
 
         rospy.spin()
 
-    def goalCallback(self, poseMsg):
-        """callback for pose goal"""
+    def goalCallback(self, pointMsg):
+        """callback for goal"""
         self.lock.acquire()
-        goal = (poseMsg.position.x, poseMsg.position.y)
-        if not self.poseQueue:
-            self.poseQueue.append(goal)
-            self.publishPoseQueue()
-        elif getAbsDistance(goal, self.poseQueue[-1]) > self.poseTolerance:
-            self.poseQueue.append(goal)
-            self.publishPoseQueue()
+        goal = (pointMsg.x, pointMsg.y)
+        if not self.goalQueue:
+            self.goalQueue.append(goal)
+            self.publishGoalQueue()
+        elif getAbsDistance(goal, self.goalQueue[-1]) > self.goalTolerance:
+            self.goalQueue.append(goal)
+            self.publishGoalQueue()
         else:
             rospy.loginfo_throttle(5.0, 'ignoring new goal that is too close to preceding goal')
         self.lock.release()
@@ -85,35 +86,36 @@ class SnakePositionController:
     def snakeCallback(self, poseMsg):
         """callback for poses from the snake"""
         self.lock.acquire()
-        if self.poseQueue:
+        if self.goalQueue:
             pose = (poseMsg.poses[0].position.x, poseMsg.poses[0].position.y)
-            goal = self.poseQueue[0]
+            goal = self.goalQueue[0]
 
-            heading = math.atan2(goal[0] - pose[0], goal[1] - pose[1])
+            heading = math.atan2(goal[1] - pose[1], goal[0] - pose[0])
             self.headingPub.publish(heading)
+            self.goalPub.publish(Point(x=pose[0], y=pose[1]))
 
-            if getAbsDistance(goal, pose) < self.poseTolerance:
-                self.poseQueue.pop(0)
-                self.publishPoseQueue()
+            if getAbsDistance(goal, pose) < self.goalTolerance:
+                self.goalQueue.pop(0)
+                self.publishGoalQueue()
         self.lock.release()
 
     def resetCallback(self, __):
-        """reset the current pose callback queue"""
+        """reset the current goal callback queue"""
         self.lock.acquire()
-        self.poseQueue = []
-        self.publishPoseQueue()
+        self.goalQueue = []
+        self.publishGoalQueue()
         self.lock.release()
         return EmptyResponse()
 
-    def publishPoseQueue(self):
-        """publish the current state of the pose queue"""
+    def publishGoalQueue(self):
+        """publish the current state of the goal queue"""
         poseArrayMsg = PoseArray()
         poseArrayMsg.poses = []
-        for pose in self.poseQueue:
+        for pose in self.goalQueue:
             poseMsg = Pose()
             poseMsg.position.x, poseMsg.position.y = pose
             poseArrayMsg.poses.append(poseMsg)
-        self.poseQueuePub.publish(poseArrayMsg)
+        self.goalQueuePub.publish(poseArrayMsg)
 
 if __name__ == "__main__":
     controller = SnakePositionController()
