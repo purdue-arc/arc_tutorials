@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>snake_tutorial</name>
+  <name>snakesim</name>
   <version>0.0.0</version>
-  <description>The snake_tutorial package</description>
+  <description>The snakesim package</description>
 
   <maintainer email="autonomy@purdue.edu">Autonomous Robotics Club of Purdue</maintainer>
   <license>BSD 3 Clause</license>
