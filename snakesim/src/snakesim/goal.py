@@ -28,32 +28,25 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ################################################################################
 
-class goal(Object):
-    """A goal for the snake to chase"""
+class Goal(object):
+    """A goal for the snake to chase."""
 
     MAX_ATTEMPTS = 10
     REQUIRED_SEPARATION = 0.5
 
     def __init__(self, arena, radius=0.5):
-        self.arena = arena
+        self._arena = arena
         self.radius = radius
         self.position = None
 
-    def randomize_position(self, snake):
+    def randomize(self, snake):
         """Generate a goal position that isn't occupied."""
         self.position = None
-        required_distance = snake.segment_radius
+        required_distance = (snake.head.radius
                             + self.radius
-                            + self.REQUIRED_SEPARATION
-        for __ in range(MAX_ATTEMPTS):
-            goal = arena.generate_position()
-            if snake.minimum_distance(goal) >= required_distance:
-                self.goalPosition = goal
+                            + self.REQUIRED_SEPARATION)
+        for __ in range(self.MAX_ATTEMPTS):
+            goal = self._arena.generate_position()
+            if (snake.head.position - goal).magnitude() >= required_distance:
+                self.position = goal
                 return
-
-    def check_collision(self, snake):
-        """Check if the snake has met its goal."""
-        return (
-            self.position is not None
-            and snake.minimum_distance(self.position) < snake.segment_radius
-        )

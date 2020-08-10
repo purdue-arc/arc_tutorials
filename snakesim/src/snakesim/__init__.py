@@ -28,5 +28,10 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ################################################################################
 
-from snake import *
-from renderer import *
+from arena import Arena
+from game import Game
+from geometry import Vector
+from goal import Goal
+from renderer import Renderer
+from segment import Segment
+from snake import Snake

@@ -29,9 +29,9 @@
 ################################################################################
 
 from random import random
-from vector import vector
+from geometry import Vector
 
-class arena(Object):
+class Arena(object):
     """The environment where the snake game takes place."""
 
     def __init__(self, width, height):
@@ -40,7 +40,7 @@ class arena(Object):
 
     def generate_position(self):
         """Generates a random position within the bounds."""
-        return vector(
+        return Vector(
             self.width * random(),
             self.height * random()
         )

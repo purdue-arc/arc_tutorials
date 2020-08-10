@@ -28,21 +28,22 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ################################################################################
 
+import numpy as np
 import pygame
-from vector import vector
+from geometry import Vector
 
-class renderer(Object):
-    """a helper class to render the Snake game in pygame"""
-    GRAY = (200, 200, 200)
-    RED = (255, 0, 0)
-    GREEN = (0, 200, 0)
-    YELLOW = (150, 200, 0)
+class Renderer(object):
+    """Render the Snake game in pygame."""
+    COLOR_BACKGROUND = (200, 200, 200)  # Gray
+    COLOR_GOAL = (255, 0, 0)            # Red
+    COLOR_BODY = (0, 200, 0)            # Green
+    COLOR_HEAD = (150, 200, 0)          # Yellow
 
     class ShutdownError(Exception):
         """Exception for when pygame is shut down"""
         pass
 
-    def __init__(self, bounds, padding, scaling):
+    def __init__(self, bounds, padding, scaling=50):
         self.bounds = bounds
         self.padding = padding
         self.scaling = scaling
@@ -50,28 +51,44 @@ class renderer(Object):
         pygame.init()
         self._screen = pygame.display.set_mode((window_size, window_size))
 
-    def convert_to_display_coords(self, position):
-        """convert game coordinates to display coordinates"""
-        display = position + makeVector(1, 1) * self.segmentRadius
+    def _convert_to_display_coords(self, position):
+        """Convert game coordinates to display coordinates."""
+        display = position + Vector(1, 1) * self.padding
         display = np.matmul(np.array([[1, 0], [0, -1]]), display)
-        display += makeVector(0, self.bounds + 2*self.segmentRadius)
+        display += Vector(0, self.bounds + 2*self.padding)
         display *= self.scaling
         return display.astype(np.int32)
 
-    def render(self, goal, segments):
-        """render the current state of the game"""
+    def render(self, goal, snake):
+        """Render the current state of the game."""
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 raise self.ShutdownError()
-        self.screen.fill(self.GRAY)
-        radius = int(self.segmentRadius * self.scaling)
-        # Draw the goal
-        if not goalPosition is None:
-            pygame.draw.circle(self.screen, self.RED, self.toDisplayCoords(goalPosition), radius)
-        # Draw segments
-        for position in snakePosition[1:]:
-            pygame.draw.circle(self.screen, self.GREEN, self.toDisplayCoords(position), radius)
-        # Draw the head in a different color
-        pygame.draw.circle(self.screen, self.YELLOW, self.toDisplayCoords(snakePosition[0]), radius)
+
+        self._screen.fill(self.COLOR_BACKGROUND)
+
+        if goal.position is not None:
+            pygame.draw.circle(
+                self._screen,
+                self.COLOR_GOAL,
+                self._convert_to_display_coords(goal.position),
+                int(goal.radius*self.scaling)
+            )
+
+        for segment in snake.body:
+            pygame.draw.circle(
+                self._screen,
+                self.COLOR_BODY,
+                self._convert_to_display_coords(segment.position),
+                int(segment.radius*self.scaling)
+            )
+
+        pygame.draw.circle(
+            self._screen,
+            self.COLOR_HEAD,
+            self._convert_to_display_coords(snake.head.position),
+            int(snake.head.radius*self.scaling)
+        )
+
         pygame.display.flip()

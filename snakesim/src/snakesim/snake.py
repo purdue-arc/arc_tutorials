@@ -28,96 +28,89 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ################################################################################
 
-class SnakeGame:
-    """A simple game of Snake with ROS bindings"""
-    def __init__(self):
-        """constructor"""
-        self.bounds = rospy.get_param('~bounds', 10)
-        self.pathResolution = rospy.get_param('~snake/path_resolution', 0.01)
-        self.segmentFollowDist = rospy.get_param('~snake/segment_follow_dist', 0.75)
-        self.segmentRadius = rospy.get_param('~snake/segment_radius', 0.5)
+import math
+from segment import Segment
 
-        self.reset()
+class Snake(object):
+    """A snake."""
+    MAX_ANGLE = math.pi/4
 
-        self.renderEnabled = rospy.get_param('~render/enabled', True)
-        if self.renderEnabled:
-            self.renderer = SnakeGameRenderer(self.bounds, self.segmentRadius)
-            self.render()
-
-    def reset(self):
-        """reset the game"""
-        self.active = True
-        self.lastUpdateTime = None
-        self.segments = 3
-        self.generatePostion()
-        self.generateGoal()
+    class SelfIntersectionError(Exception):
+        """Exception for when the snake self intersects"""
         pass
 
-    def generatePostion(self):
-        """the initial starting position / path"""
-        # TODO randomize?
-        self.headingVector = makeVector(0, 1)
-        x = 6
-        y_max = 8
-        y_min = y_max - (self.segments-1) * self.segmentFollowDist
-        self.position = [makeVector(x, y) for y in np.linspace(y_max, y_min, self.segments)]
-        # numpy.arange isn't recommended for non integer step sizes, so use linspace instead
-        self.path = [makeVector(x, y) for y in np.linspace(y_max, y_min, (y_max - y_min)/self.pathResolution)]
+    def __init__(self, position, heading_vector, num_segments=3,
+                 radius=0.5, follow_distance=0.75, path_resolution=0.01):
+        self.follow_distance = follow_distance
+        self.path_resolution = path_resolution
 
-    def step(self, linearVelocity, angularVelocity):
-        """advance one time-step in the game"""
-        if not self.lastUpdateTime:
-            self.lastUpdateTime = rospy.Time.now()
+        self.segments = []
+        for segment_num in range(num_segments):
+            segment_position = position - segment_num*heading_vector*follow_distance
+            segment = Segment(radius, segment_position, heading_vector)
+            self.segments.append(segment)
 
-        if self.active:
-            # update time
-            now = rospy.Time.now()
-            deltaT = (now - self.lastUpdateTime).to_sec()
-            self.lastUpdateTime = now
+        self._path = [position - x*path_resolution*heading_vector*follow_distance
+                      for x in range(int(follow_distance*(num_segments-1)/path_resolution))]
 
-            # update heading
-            
+    @property
+    def head(self):
+        """The head segment."""
+        return self.segments[0]
 
-            outOfBounds = np.count_nonzero(np.logical_and(headPosition >= 0, headPosition < self.bounds)) != 2
-            selfIntersect = self.getDistToSelf(headPosition, startIndex=2) < self.segmentFollowDist
-            if outOfBounds or selfIntersect:
-                self.active = False
-                rospy.loginfo('snake died due to ' +
-                    ('traveling out of bounds' if outOfBounds else '') +
-                    ('self intersection' if selfIntersect else ''))
-            else:
-                # update path
-                if tfs.vector_norm(headPosition - self.path[0]) >= self.pathResolution:
-                    self.path.insert(0, np.copy(headPosition))
+    @property
+    def body(self):
+        """Array of body segments."""
+        return self.segments[1:]
 
-                # update head position
-                self.position[0] = headPosition
-                self.headingVector = headingVector
+    def step(self, linear_velocity, angular_velocity, delta_t):
+        """Advance one time step"""
+        # move head
+        delta_yaw = angular_velocity * delta_t
+        heading_vector = self.head.heading_vector.rotate(delta_yaw)
 
-                # Update tail
+        body_vector = (self.head.position - self.body[0].position).unit()
+        angle = math.acos(np.dot(body_vector, heading_vector))
+        if angle > self.MAX_ANGLE:
+            heading_vector = body_vector.rotate(self.MAX_ANGLE)
+        elif angle < -self.MAX_ANGLE:
+            heading_vector = body_vector.rotate(-self.MAX_ANGLE)
 
+        if linearVelocity < 0:
+            return
+        position = self.head.position + heading_vector*linearVelocity*deltaT
 
-                # place any waiting-to-spawn segments at the end
-                if not segmentIndex >= self.segments:
-                    self.position.extend([self.path[-1]] * (self.segments - segmentIndex))
+        self.head.position = position
+        self.head.heading_vector = heading_vector
 
-                # Check goal
-                if not self.goalPosition is None and tfs.vector_norm(headPosition - self.goalPosition) <= self.segmentRadius:
-                    self.segments += 1
-                    self.generateGoal()
+        # update body segments and trim path
+        path_index = 0
+        for index, segment in enumerate(self.body):
+            path_index += self._update_segment(segment, self.segments[index],
+                                              self._path[path_index:])
+        self._path = self._path[:path_index]
 
-        if self.renderEnabled:
-            self.render()
+        # check self intersection
+        for segment in self.body:
+            if (self.head.position - segment.position).magnitude() < self.follow_distance:
+                raise SelfIntersectionError()
 
+        # extend path
+        if (self.head.position - self._path[0]).magnitude() >= self.path_resolution:
+            self._path.insert(0, np,copy(self.head.position))
 
+    def _update_segment(self, segment, leading_segment, path):
+        """Update the position of this segment."""
+        for index, position in enumerate(path):
+            if (segment.position - position).magnitude() >= self.follow_distance:
+                segment.position = np.copy(position)
+                segment.heading_vector = (leading_segment.position - position).unit()
+                return index
+        return len(path)
 
-    def getDistToSelf(self, position, startIndex=0):
-        """get the minimum distance of a position to any segment"""
-        return min([tfs.vector_norm(segment - position) for segment in self.position[startIndex:]])
-
-    def render(self):
-        """render the current state of the game using a SnakeGameRenderer"""
-        try:
-            self.renderer.render(self.goalPosition, self.position)
-        except(SnakeGameRenderer.ShutdownException):
-            self.renderEnabled = False
+    def add_segment(self):
+        """Add a new segment on to the tail."""
+        copy = self.segments[-1]
+        segment = Segment(copy.radius, np.copy(copy.position),
+                          np.copy(copy.heading_vector))
+        self.segments.append(segment)

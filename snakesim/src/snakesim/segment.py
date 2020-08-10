@@ -27,23 +27,16 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ################################################################################
-
 import math
-from tf import tfs as tfs
-import geometry
+from tf.transformations import quaternion_from_euler
 
-class NegativeVelocityError(Exception):
-    """Exception for when the linear velocity is negative"""
-    pass
-
-class segment(Object):
+class Segment(object):
     """A single segment of the snake."""
-    def __init__(self, radius):
+    def __init__(self, radius, position, heading_vector):
         self.radius = radius
-        self.position = None
-        self.heading_vector = None
+        self.position = position
+        self.heading_vector = heading_vector
 
-    @property
     def heading_angle(self):
         """Heading of the snake as a yaw angle."""
         if self.heading_vector is not None:
@@ -51,62 +44,9 @@ class segment(Object):
         else:
             return None
 
-    @property
     def heading_quaternion(self):
         """Heading of the segment as a quaternion."""
         if self.heading_vector is not None:
-            return tfs.quaternion_from_euler(0, 0, self.heading_angle)
+            return quaternion_from_euler(0, 0, self.heading_angle)
         else:
             return None
-
-class body_segment(segment):
-    """A segment other than the head."""
-    def __init__(self, radius, follow_distance):
-        super.__init__(radius)
-        self.follow_distance = follow_distance
-
-    def follow(self, leading_segment, path):
-        """Update the position of this segment."""
-        for index, position in enumerate(path):
-            if tfs.vector_norm()
-
-
-        self.position = self.position[:segmentIndex]
-                            for pathIndex, position in enumerate(self.path):
-                                if tfs.vector_norm(self.position[segmentIndex-1] - position) >= self.segmentFollowDist:
-                                    self.position.append(np.copy(position))
-                                    segmentIndex += 1
-                                    if segmentIndex >= self.segments:
-                                        # if we aren't waiting to spawn new segments,
-                                        # we don't need to track the path longer than the snake
-                                        self.path = self.path[:pathIndex+1]
-                                        break
-
-class head_segment(segment):
-    """The head segment of the snake."""
-    MAX_ANGLE = math.pi/4
-
-    def integrate(self, linear_velocity, angular_velocity,
-                  delta_t, following_segment):
-        """Advance one time step."""
-        rotation_matrix = geometry.rotation_matrix(angular_velocity * delta_t)
-        heading_vector = np.matmul(rotation_matrix, self.heading_vector)
-
-        body_vector = tfs.unit_vector(self.position - following_segment.position)
-        angle = math.acos(np.dot(body_vector, heading_vector))
-        if angle > MAX_ANGLE:
-            rotation_matrix = makeRotationMatrix(MAX_ANGLE)
-            heading_vector = np.matmul(rotation_matrix, body_vector)
-        elif angle < -MAX_ANGLE:
-            rotation_matrix = makeRotationMatrix(-MAX_ANGLE)
-            heading_vector = np.matmul(rotation_matrix, body_vector)
-
-        if linearVelocity < 0:
-            raise NegativeVelocityError()
-        position = self.position + heading_vector*linearVelocity*deltaT
-
-        if not self.arena.check_position(self.position)
-            raise Error()
-
-        self.position = position
-        self.heading_vector = heading_vector

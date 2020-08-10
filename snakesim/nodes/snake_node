@@ -28,112 +28,122 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ################################################################################
 
+# Python
+from threading import Lock
+
 # ROS
 import rospy
 from geometry_msgs.msg import Twist, PoseArray, Pose, PointStamped
 from std_msgs.msg import Int32, Bool
 from std_srvs.srv import Empty, EmptyResponse
 
-# Python
-import numpy as np
-from random import random
-from threading import Lock
-import math
-from angles import shortest_angular_distance
-from tf import transformations as tfs
-
-# rospy.get_param('~rendering/scaling', 50)
+import snakesim
 
 class SnakeGameROS:
-    """ROS wrapper for the snake game"""
+    """ROS wrapper for the snake game."""
     def __init__(self):
-        """constructor"""
         rospy.init_node('snake_node', anonymous=False)
 
-        self.game = SnakeGame()
+        self.game = snakesim.Game(
+            bounds=rospy.get_param('~arena/bounds', 10),
+            segment_radius=rospy.get_param('~snake/segment_radius', 0.5),
+            segment_follow_dist=rospy.get_param('~snake/segment_follow_dist', 0.75),
+            path_resolution=rospy.get_param('~snake/path_resolution', 0.01),
+            render=rospy.get_param('~render/enabled', True),
+            render_scaling=rospy.get_param('~render/scaling', 50)
+        )
+
         self.lock = Lock()
-        self.lastCommand = None
+        self.last_command = None
+        self.last_time = None
 
         self.frame_id = rospy.get_param('~frame_id', 'game')
-        self.timeout = rospy.get_param('~timeout', 1.0)
-        rate = rospy.Rate(rospy.get_param('~rate', 30)) #Hz
+        self.timeout = rospy.get_param('~timeout', 1.0) # Seconds
+        rate = rospy.Rate(rospy.get_param('~rate', 30)) # Hz
 
         # Publishers
-        self.posePub = rospy.Publisher('snake/pose', PoseArray, queue_size=3)
-        self.goalPub = rospy.Publisher('snake/goal', PointStamped, queue_size=3)
-        self.scorePub = rospy.Publisher('snake/score', Int32, queue_size=3)
-        self.activePub = rospy.Publisher('snake/active', Bool, queue_size=3)
+        self.pose_pub = rospy.Publisher('snake/pose', PoseArray, queue_size=3)
+        self.goal_pub = rospy.Publisher('snake/goal', PointStamped, queue_size=3)
+        self.score_pub = rospy.Publisher('snake/score', Int32, queue_size=3)
+        self.active_pub = rospy.Publisher('snake/active', Bool, queue_size=3)
 
         # Subscribers
-        rospy.Subscriber('snake/cmd_vel', Twist, self.commandCallback)
+        rospy.Subscriber('snake/cmd_vel', Twist, self.command_cb)
 
         # Services
-        rospy.Service('snake/reset', Empty, self.resetCallback)
+        rospy.Service('snake/reset', Empty, self.reset_cb)
 
         try:
             while not rospy.is_shutdown():
-                self.loopOnce()
+                self.loop_once()
                 rate.sleep()
         except rospy.ROSInterruptException:
-            # catch exception thrown when ROS is shutdown during sleep
             pass
 
-    def commandCallback(self, commandMsg):
-        """callback for command messages for snake"""
+    def command_cb(self, commandMsg):
+        """Callback for command messages for snake."""
         # Put this all in one tuple so that it is atomic
-        self.lastCommand = (rospy.Time.now(), commandMsg.linear.x, commandMsg.angular.z)
+        self.last_command = (rospy.Time.now(), commandMsg.linear.x, commandMsg.angular.z)
 
-    def resetCallback(self, __):
-        """callback for game reset service"""
+    def reset_cb(self, __):
+        """Callback for game reset service."""
         self.lock.acquire()
         self.game.reset()
-        self.lastCommand = None
+        self.last_command = None
+        self.last_time = None
         self.lock.release()
         return EmptyResponse()
 
-    def loopOnce(self):
-        """main loop"""
+    def loop_once(self):
+        """Main loop."""
         self.lock.acquire()
         now = rospy.Time.now()
 
+        if self.last_time is None:
+            self.last_time = now
+            return
+
         # iterate game one step
-        if self.lastCommand:
-            lastCommandTime, lastLinearCommand, lastAngularCommand = self.lastCommand
-            if (now - lastCommandTime).to_sec() >= self.timeout:
-                self.game.step(0.0, 0.0)
+        if self.last_command is not None:
+            delta_t = now - self.last_time
+            last_command_time, linear, angular = self.last_command
+            if (now - last_command_time).to_sec() >= self.timeout:
+                self.game.step(0.0, 0.0, delta_t)
             else:
-                self.game.step(lastLinearCommand, lastAngularCommand)
+                self.game.step(linear, angular, delta_t)
 
         # send status messages
         poseMsg = PoseArray()
         poseMsg.header.stamp = now
         poseMsg.header.frame_id = self.frame_id
         poseMsg.poses = []
-        for index, position in enumerate(self.game.position):
+        for segment in self.game.snake.segments:
             pose = Pose()
-            pose.position.x = position[0]
-            pose.position.y = position[1]
-            quat = None
-            if index == 0:
-                quat = getQuaternion(self.game.headingVector)
-            else:
-                quat = getQuaternion(self.game.position[index-1] - position)
+            pose.position.x = segment.position.x
+            pose.position.y = segment.position.y
+
+            quat = segment.heading_quaternion()
             pose.orientation.x = quat[0]
             pose.orientation.y = quat[1]
             pose.orientation.z = quat[2]
             pose.orientation.w = quat[3]
-            poseMsg.poses.append(pose)
-        self.posePub.publish(poseMsg)
 
-        if not self.game.goalPosition is None:
+            poseMsg.poses.append(pose)
+
+        self.pose_pub.publish(poseMsg)
+
+        if self.game.goal.position is not None:
             goalMsg = PointStamped()
             goalMsg.header.stamp = now
             goalMsg.header.frame_id = self.frame_id
-            goalMsg.point.x, goalMsg.point.y = self.game.goalPosition
-            self.goalPub.publish(goalMsg)
+            goalMsg.point.x = self.game.goal.position.x
+            goalMsg.point.y = self.game.goal.position.y
+            self.goal_pub.publish(goalMsg)
 
-        self.scorePub.publish(self.game.segments)
-        self.activePub.publish(self.game.active)
+        self.score_pub.publish(len(self.game.snake.segments))
+        self.active_pub.publish(self.game.active)
+
+        self.last_time = now
         self.lock.release()
 
 if __name__ == "__main__":

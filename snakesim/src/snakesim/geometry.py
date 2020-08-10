@@ -31,32 +31,40 @@
 import numpy as np
 from tf import transformations as tfs
 
-class rotation_matrix(np.ndarray):
-    """A 2D rotation matrix"""
-    def __new__(cls, yaw):
-        return tfs.rotation_matrix(yaw, (0, 0, 1))[:2,:2].view(cls)
-
-class vector(np.ndarray):
+class Vector(np.ndarray):
     """A 2D vector object."""
     def __new__(cls, x, y):
         return np.array([[x, y]], dtype=np.double).T.view(cls)
 
+    def rotate(self, yaw):
+        """Get vector yawed CCW around Z axis by angle."""
+        rotation_matrix = tfs.rotation_matrix(yaw, (0, 0, 1))[:2,:2]
+        return np.matmul(rotation_matrix, self)
+
     @property
     def x(self):
-        """X component."""
-        return self[0]
+        """Get X component."""
+        return self[0, 0]
+
+    @x.setter
+    def x(self, x):
+        """Set X component."""
+        self[0, 0] = x
 
     @property
     def y(self):
         """Y component."""
-        return self[1]
+        return self[1, 0]
 
-    @property
+    @y.setter
+    def y(self, y):
+        """Set Y component."""
+        self[1, 0] = y
+
     def magnitude(self):
-        """Scalar magnitude."""
+        """Get scalar magnitude."""
         return tfs.vector_norm(self)
 
-    @property
     def unit(self):
-        """Unit vector."""
-        return tfs.unit_vector(self).view(vector)
+        """Get unit vector."""
+        return tfs.unit_vector(self).view(Vector)
