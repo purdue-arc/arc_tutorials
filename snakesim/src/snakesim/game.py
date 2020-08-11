@@ -68,17 +68,15 @@ class Game(object):
         """Advance one time-step in the game."""
         if self.active:
             try:
-                snake.step(linear_velocity, angular_velocity, delta_t)
+                self.snake.step(linear_velocity, angular_velocity, delta_t)
             except Snake.SelfIntersectionError:
                 self.active = False
-                return
 
-            if not self.arena.check_position(snake.head.position):
+            if not self.arena.check_position(self.snake.head.position):
                 self.active = False
-                return
 
-            if (self.goal.position is not None
-              and (self.goal.position - snake.snake.head.position).magnitude()
+            if (self.active and self.goal.position is not None
+              and (self.goal.position - self.snake.head.position).magnitude()
               <= self.snake.head.radius):
                 self.snake.add_segment()
                 self.goal.randomize(self.snake)

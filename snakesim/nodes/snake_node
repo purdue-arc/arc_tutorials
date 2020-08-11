@@ -39,10 +39,10 @@ from std_srvs.srv import Empty, EmptyResponse
 
 import snakesim
 
-class SnakeGameROS:
+class SnakeGameROS(object):
     """ROS wrapper for the snake game."""
     def __init__(self):
-        rospy.init_node('snake_node', anonymous=False)
+        rospy.init_node('snake_node')
 
         self.game = snakesim.Game(
             bounds=rospy.get_param('~arena/bounds', 10),
@@ -73,12 +73,12 @@ class SnakeGameROS:
         # Services
         rospy.Service('snake/reset', Empty, self.reset_cb)
 
-        try:
-            while not rospy.is_shutdown():
-                self.loop_once()
+        while not rospy.is_shutdown():
+            self.loop_once()
+            try:
                 rate.sleep()
-        except rospy.ROSInterruptException:
-            pass
+            except rospy.ROSInterruptException:
+                pass
 
     def command_cb(self, commandMsg):
         """Callback for command messages for snake."""
@@ -99,49 +99,46 @@ class SnakeGameROS:
         self.lock.acquire()
         now = rospy.Time.now()
 
-        if self.last_time is None:
-            self.last_time = now
-            return
+        if self.last_time is not None:
+            # iterate game one step
+            if self.last_command is not None:
+                delta_t = (now - self.last_time).to_sec()
+                last_command_time, linear, angular = self.last_command
+                if (now - last_command_time).to_sec() >= self.timeout:
+                    self.game.step(0.0, 0.0, delta_t)
+                else:
+                    self.game.step(linear, angular, delta_t)
 
-        # iterate game one step
-        if self.last_command is not None:
-            delta_t = now - self.last_time
-            last_command_time, linear, angular = self.last_command
-            if (now - last_command_time).to_sec() >= self.timeout:
-                self.game.step(0.0, 0.0, delta_t)
-            else:
-                self.game.step(linear, angular, delta_t)
+            # send status messages
+            poseMsg = PoseArray()
+            poseMsg.header.stamp = now
+            poseMsg.header.frame_id = self.frame_id
+            poseMsg.poses = []
+            for segment in self.game.snake.segments:
+                pose = Pose()
+                pose.position.x = segment.position.x
+                pose.position.y = segment.position.y
 
-        # send status messages
-        poseMsg = PoseArray()
-        poseMsg.header.stamp = now
-        poseMsg.header.frame_id = self.frame_id
-        poseMsg.poses = []
-        for segment in self.game.snake.segments:
-            pose = Pose()
-            pose.position.x = segment.position.x
-            pose.position.y = segment.position.y
+                quat = segment.heading_quaternion()
+                pose.orientation.x = quat[0]
+                pose.orientation.y = quat[1]
+                pose.orientation.z = quat[2]
+                pose.orientation.w = quat[3]
 
-            quat = segment.heading_quaternion()
-            pose.orientation.x = quat[0]
-            pose.orientation.y = quat[1]
-            pose.orientation.z = quat[2]
-            pose.orientation.w = quat[3]
+                poseMsg.poses.append(pose)
 
-            poseMsg.poses.append(pose)
+            self.pose_pub.publish(poseMsg)
 
-        self.pose_pub.publish(poseMsg)
+            if self.game.goal.position is not None:
+                goalMsg = PointStamped()
+                goalMsg.header.stamp = now
+                goalMsg.header.frame_id = self.frame_id
+                goalMsg.point.x = self.game.goal.position.x
+                goalMsg.point.y = self.game.goal.position.y
+                self.goal_pub.publish(goalMsg)
 
-        if self.game.goal.position is not None:
-            goalMsg = PointStamped()
-            goalMsg.header.stamp = now
-            goalMsg.header.frame_id = self.frame_id
-            goalMsg.point.x = self.game.goal.position.x
-            goalMsg.point.y = self.game.goal.position.y
-            self.goal_pub.publish(goalMsg)
-
-        self.score_pub.publish(len(self.game.snake.segments))
-        self.active_pub.publish(self.game.active)
+            self.score_pub.publish(len(self.game.snake.segments))
+            self.active_pub.publish(self.game.active)
 
         self.last_time = now
         self.lock.release()

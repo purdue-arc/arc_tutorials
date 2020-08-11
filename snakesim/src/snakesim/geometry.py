@@ -34,32 +34,32 @@ from tf import transformations as tfs
 class Vector(np.ndarray):
     """A 2D vector object."""
     def __new__(cls, x, y):
-        return np.array([[x, y]], dtype=np.double).T.view(cls)
+        return np.array([x, y], dtype=np.double).T.view(cls)
 
     def rotate(self, yaw):
         """Get vector yawed CCW around Z axis by angle."""
         rotation_matrix = tfs.rotation_matrix(yaw, (0, 0, 1))[:2,:2]
-        return np.matmul(rotation_matrix, self)
+        return np.matmul(rotation_matrix, self).view(Vector)
 
     @property
     def x(self):
         """Get X component."""
-        return self[0, 0]
+        return self[0]
 
     @x.setter
     def x(self, x):
         """Set X component."""
-        self[0, 0] = x
+        self[0] = x
 
     @property
     def y(self):
         """Y component."""
-        return self[1, 0]
+        return self[1]
 
     @y.setter
     def y(self, y):
         """Set Y component."""
-        self[1, 0] = y
+        self[1] = y
 
     def magnitude(self):
         """Get scalar magnitude."""
@@ -68,3 +68,7 @@ class Vector(np.ndarray):
     def unit(self):
         """Get unit vector."""
         return tfs.unit_vector(self).view(Vector)
+
+    def copy(self):
+        """Get a copy."""
+        return np.copy(self).view(Vector)

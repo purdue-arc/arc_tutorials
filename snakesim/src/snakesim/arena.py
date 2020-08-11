@@ -47,6 +47,6 @@ class Arena(object):
 
     def check_position(self, position, radius=0.0):
         """Validate a position is within the bounds"""
-        valid_x = position.x >= radius and position.y < self.width - radius
+        valid_x = position.x >= radius and position.x < self.width - radius
         valid_y = position.y >= radius and position.y < self.height - radius
         return valid_x and valid_y

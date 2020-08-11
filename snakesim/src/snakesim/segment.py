@@ -39,14 +39,8 @@ class Segment(object):
 
     def heading_angle(self):
         """Heading of the snake as a yaw angle."""
-        if self.heading_vector is not None:
-            return math.atan2(self.heading_vector.y, self.heading_vector.x)
-        else:
-            return None
+        return math.atan2(self.heading_vector.y, self.heading_vector.x)
 
     def heading_quaternion(self):
         """Heading of the segment as a quaternion."""
-        if self.heading_vector is not None:
-            return quaternion_from_euler(0, 0, self.heading_angle)
-        else:
-            return None
+        return quaternion_from_euler(0, 0, self.heading_angle())

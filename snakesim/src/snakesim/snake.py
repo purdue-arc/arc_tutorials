@@ -29,7 +29,10 @@
 ################################################################################
 
 import math
+import numpy as np
 from segment import Segment
+
+import pdb
 
 class Snake(object):
     """A snake."""
@@ -50,8 +53,9 @@ class Snake(object):
             segment = Segment(radius, segment_position, heading_vector)
             self.segments.append(segment)
 
-        self._path = [position - x*path_resolution*heading_vector*follow_distance
-                      for x in range(int(follow_distance*(num_segments-1)/path_resolution))]
+        length = (num_segments-1) * follow_distance
+        count = length/path_resolution + 1
+        self._path = [position - delta*heading_vector for delta in np.linspace(0, length, count)]
 
     @property
     def head(self):
@@ -76,9 +80,9 @@ class Snake(object):
         elif angle < -self.MAX_ANGLE:
             heading_vector = body_vector.rotate(-self.MAX_ANGLE)
 
-        if linearVelocity < 0:
+        if linear_velocity < 0:
             return
-        position = self.head.position + heading_vector*linearVelocity*deltaT
+        position = self.head.position + heading_vector*linear_velocity*delta_t
 
         self.head.position = position
         self.head.heading_vector = heading_vector
@@ -93,17 +97,17 @@ class Snake(object):
         # check self intersection
         for segment in self.body:
             if (self.head.position - segment.position).magnitude() < self.follow_distance:
-                raise SelfIntersectionError()
+                raise self.SelfIntersectionError()
 
         # extend path
         if (self.head.position - self._path[0]).magnitude() >= self.path_resolution:
-            self._path.insert(0, np,copy(self.head.position))
+            self._path.insert(0, self.head.position.copy())
 
     def _update_segment(self, segment, leading_segment, path):
         """Update the position of this segment."""
         for index, position in enumerate(path):
-            if (segment.position - position).magnitude() >= self.follow_distance:
-                segment.position = np.copy(position)
+            if (leading_segment.position - position).magnitude() >= self.follow_distance:
+                segment.position = position.copy()
                 segment.heading_vector = (leading_segment.position - position).unit()
                 return index
         return len(path)
@@ -111,6 +115,6 @@ class Snake(object):
     def add_segment(self):
         """Add a new segment on to the tail."""
         copy = self.segments[-1]
-        segment = Segment(copy.radius, np.copy(copy.position),
-                          np.copy(copy.heading_vector))
+        segment = Segment(copy.radius, copy.position.copy(),
+                          copy.heading_vector.copy())
         self.segments.append(segment)
