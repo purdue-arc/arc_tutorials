@@ -77,7 +77,7 @@ class Game(object):
 
             if (self.active and self.goal.position is not None
               and (self.goal.position - self.snake.head.position).magnitude()
-              <= self.snake.head.radius):
+              <= self.goal.radius):
                 self.snake.add_segment()
                 self.goal.randomize(self.snake)
 
