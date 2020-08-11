@@ -1,0 +1,150 @@
+#!/usr/bin/env python
+"""Node to run the snakesim game with ROS bindings.
+
+License:
+  BSD 3-Clause License
+
+  Copyright (c) 2020, Autonomous Robotics Club of Purdue (Purdue ARC)
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are met:
+
+  1. Redistributions of source code must retain the above copyright notice, this
+     list of conditions and the following disclaimer.
+  2. Redistributions in binary form must reproduce the above copyright notice,
+     this list of conditions and the following disclaimer in the documentation
+     and/or other materials provided with the distribution.
+  3. Neither the name of the copyright holder nor the names of its
+     contributors may be used to endorse or promote products derived from
+     this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+  DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+  FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+  DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+  SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+  OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+"""
+
+# Python
+from threading import Lock
+
+# ROS
+import rospy
+from geometry_msgs.msg import Twist, PoseArray, Pose, PointStamped
+from std_msgs.msg import Int32, Bool
+from std_srvs.srv import Empty, EmptyResponse
+
+import snakesim
+
+class SnakeGameROS(object):
+    """ROS wrapper for the snake game."""
+    def __init__(self):
+        rospy.init_node('snake_node')
+
+        self.game = snakesim.Game(
+            bounds=rospy.get_param('~arena/bounds', 10),
+            segment_radius=rospy.get_param('~snake/segment_radius', 0.5),
+            segment_follow_dist=rospy.get_param('~snake/segment_follow_dist', 0.75),
+            path_resolution=rospy.get_param('~snake/path_resolution', 0.01),
+            render=rospy.get_param('~render/enabled', True),
+            render_scaling=rospy.get_param('~render/scaling', 50)
+        )
+
+        self.lock = Lock()
+        self.last_command = None
+        self.last_time = None
+
+        self.frame_id = rospy.get_param('~frame_id', 'game')
+        self.timeout = rospy.get_param('~timeout', 1.0) # Seconds
+        rate = rospy.Rate(rospy.get_param('~rate', 30)) # Hz
+
+        # Publishers
+        self.pose_pub = rospy.Publisher('snake/pose', PoseArray, queue_size=3)
+        self.goal_pub = rospy.Publisher('snake/goal', PointStamped, queue_size=3)
+        self.score_pub = rospy.Publisher('snake/score', Int32, queue_size=3)
+        self.active_pub = rospy.Publisher('snake/active', Bool, queue_size=3)
+
+        # Subscribers
+        rospy.Subscriber('snake/cmd_vel', Twist, self.command_cb)
+
+        # Services
+        rospy.Service('snake/reset', Empty, self.reset_cb)
+
+        while not rospy.is_shutdown():
+            self.loop_once()
+            try:
+                rate.sleep()
+            except rospy.ROSInterruptException:
+                pass
+
+    def command_cb(self, command_msg):
+        """Callback for command messages for snake."""
+        # Put this all in one tuple so that it is atomic
+        self.last_command = (rospy.Time.now(), command_msg.linear.x, command_msg.angular.z)
+
+    def reset_cb(self, __):
+        """Callback for game reset service."""
+        self.lock.acquire()
+        self.game.reset()
+        self.last_command = None
+        self.last_time = None
+        self.lock.release()
+        return EmptyResponse()
+
+    def loop_once(self):
+        """Main loop."""
+        self.lock.acquire()
+        now = rospy.Time.now()
+
+        if self.last_time is not None:
+            # iterate game one step
+            if self.last_command is not None:
+                delta_t = (now - self.last_time).to_sec()
+                last_command_time, linear, angular = self.last_command
+                if (now - last_command_time).to_sec() >= self.timeout:
+                    self.game.step(0.0, 0.0, delta_t)
+                else:
+                    self.game.step(linear, angular, delta_t)
+
+            # send status messages
+            pose_msg = PoseArray()
+            pose_msg.header.stamp = now
+            pose_msg.header.frame_id = self.frame_id
+            pose_msg.poses = []
+            for segment in self.game.snake.segments:
+                pose = Pose()
+                pose.position.x = segment.position.x
+                pose.position.y = segment.position.y
+
+                quat = segment.heading_quaternion()
+                pose.orientation.x = quat[0]
+                pose.orientation.y = quat[1]
+                pose.orientation.z = quat[2]
+                pose.orientation.w = quat[3]
+
+                pose_msg.poses.append(pose)
+
+            self.pose_pub.publish(pose_msg)
+
+            if self.game.goal.position is not None:
+                goal_msg = PointStamped()
+                goal_msg.header.stamp = now
+                goal_msg.header.frame_id = self.frame_id
+                goal_msg.point.x = self.game.goal.position.x
+                goal_msg.point.y = self.game.goal.position.y
+                self.goal_pub.publish(goal_msg)
+
+            self.score_pub.publish(len(self.game.snake.segments))
+            self.active_pub.publish(self.game.active)
+
+        self.last_time = now
+        self.lock.release()
+
+if __name__ == "__main__":
+    SnakeGameROS()

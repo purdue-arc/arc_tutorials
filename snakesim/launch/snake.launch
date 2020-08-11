@@ -1,7 +1,7 @@
 <launch>
   <arg name="use_pygame" default="false"/>
 
-  <node type="snake_node.py" pkg="snake_tutorial" name="snake_node">
+  <node type="snake_node" pkg="snakesim" name="snake_node" output="screen">
     <param name="render/enabled" value="$(arg use_pygame)"/>
   </node>
 </launch>
