@@ -32,8 +32,6 @@ import math
 import numpy as np
 from segment import Segment
 
-import pdb
-
 class Snake(object):
     """A snake."""
     MAX_ANGLE = math.pi/4
