@@ -1,32 +1,35 @@
 #!/usr/bin/env python
+"""Node to run the snakesim game with ROS bindings.
 
-################################################################################
-# BSD 3-Clause License
-#
-# Copyright (c) 2020, Autonomous Robotics Club of Purdue (Purdue ARC)
-# All rights reserved.
-#
-# Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions are met:
-# 1. Redistributions of source code must retain the above copyright notice, this
-#    list of conditions and the following disclaimer.
-# 2. Redistributions in binary form must reproduce the above copyright notice,
-#    this list of conditions and the following disclaimer in the documentation
-#    and/or other materials provided with the distribution.
-# 3. Neither the name of the copyright holder nor the names of its
-#    contributors may be used to endorse or promote products derived from
-#    this software without specific prior written permission.
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
-# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-# OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-################################################################################
+License:
+  BSD 3-Clause License
+
+  Copyright (c) 2020, Autonomous Robotics Club of Purdue (Purdue ARC)
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are met:
+
+  1. Redistributions of source code must retain the above copyright notice, this
+     list of conditions and the following disclaimer.
+  2. Redistributions in binary form must reproduce the above copyright notice,
+     this list of conditions and the following disclaimer in the documentation
+     and/or other materials provided with the distribution.
+  3. Neither the name of the copyright holder nor the names of its
+     contributors may be used to endorse or promote products derived from
+     this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+  DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+  FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+  DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+  SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+  OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+"""
 
 # Python
 from threading import Lock
@@ -80,10 +83,10 @@ class SnakeGameROS(object):
             except rospy.ROSInterruptException:
                 pass
 
-    def command_cb(self, commandMsg):
+    def command_cb(self, command_msg):
         """Callback for command messages for snake."""
         # Put this all in one tuple so that it is atomic
-        self.last_command = (rospy.Time.now(), commandMsg.linear.x, commandMsg.angular.z)
+        self.last_command = (rospy.Time.now(), command_msg.linear.x, command_msg.angular.z)
 
     def reset_cb(self, __):
         """Callback for game reset service."""
@@ -110,10 +113,10 @@ class SnakeGameROS(object):
                     self.game.step(linear, angular, delta_t)
 
             # send status messages
-            poseMsg = PoseArray()
-            poseMsg.header.stamp = now
-            poseMsg.header.frame_id = self.frame_id
-            poseMsg.poses = []
+            pose_msg = PoseArray()
+            pose_msg.header.stamp = now
+            pose_msg.header.frame_id = self.frame_id
+            pose_msg.poses = []
             for segment in self.game.snake.segments:
                 pose = Pose()
                 pose.position.x = segment.position.x
@@ -125,17 +128,17 @@ class SnakeGameROS(object):
                 pose.orientation.z = quat[2]
                 pose.orientation.w = quat[3]
 
-                poseMsg.poses.append(pose)
+                pose_msg.poses.append(pose)
 
-            self.pose_pub.publish(poseMsg)
+            self.pose_pub.publish(pose_msg)
 
             if self.game.goal.position is not None:
-                goalMsg = PointStamped()
-                goalMsg.header.stamp = now
-                goalMsg.header.frame_id = self.frame_id
-                goalMsg.point.x = self.game.goal.position.x
-                goalMsg.point.y = self.game.goal.position.y
-                self.goal_pub.publish(goalMsg)
+                goal_msg = PointStamped()
+                goal_msg.header.stamp = now
+                goal_msg.header.frame_id = self.frame_id
+                goal_msg.point.x = self.game.goal.position.x
+                goal_msg.point.y = self.game.goal.position.y
+                self.goal_pub.publish(goal_msg)
 
             self.score_pub.publish(len(self.game.snake.segments))
             self.active_pub.publish(self.game.active)
@@ -144,4 +147,4 @@ class SnakeGameROS(object):
         self.lock.release()
 
 if __name__ == "__main__":
-    snakeGameROS = SnakeGameROS()
+    SnakeGameROS()
