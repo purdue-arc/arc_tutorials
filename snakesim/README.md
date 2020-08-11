@@ -1,5 +1,4 @@
 # snakesim
-
 This package contains a snake game written in Python with ROS bindings.
 It will be used as an example in order to teach ROS by writing a control
 algorithm for the snake. It has been designed to have a somewhat similar
@@ -76,7 +75,7 @@ you intend to run this code from.
 
 ### Launching
 There are several launch files included. The most basic one to get up and running
-can be executed with `roslaunch snakesim snake_demo.launch`.
+can be executed with `roslaunch snakesim snakesim.launch`.
 
 You can also run `snake_rviz.launch` if you'd prefer to use rviz to visualize
 and control the snake instead of pygame and rqt_robot_steering.
