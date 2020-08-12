@@ -1,16 +1,7 @@
 <launch>
-  <arg name="use_rviz" default="false"/>
-  <arg name="use_pygame" default="true"/>
-
-  <include file="$(find snake_tutorial)/launch/snake_demo.launch">
-    <arg name="use_rviz" value="$(arg use_rviz)"/>
-    <arg name="use_pygame" value="$(arg use_pygame)"/>
-    <arg name="use_rqt_steering" value="false"/>
-  </include>
-
-  <node type="snake_heading_controller.py" pkg="snake_tutorial" name="snake_heading_controller"/>
-  <node type="snake_position_controller.py" pkg="snake_tutorial" name="snake_position_controller"/>
-  <node type="snake_goal_relay.py" pkg="snake_tutorial" name="snake_goal_relay"/>
+  <node type="snake_heading_controller" pkg="snake_tutorial" name="snake_heading_controller"/>
+  <node type="snake_position_controller" pkg="snake_tutorial" name="snake_position_controller"/>
+  <node type="snake_goal_relay" pkg="snake_tutorial" name="snake_goal_relay"/>
 
   <node type="rostopic" pkg="rostopic" name="velocity_publisher" args="pub /controller/velocity std_msgs/Float64 'data: 2.0'"/>
 </launch>

@@ -1,0 +1,90 @@
+#!/usr/bin/env python
+"""Node to control the heading of the snake.
+
+License:
+  BSD 3-Clause License
+
+  Copyright (c) 2020, Autonomous Robotics Club of Purdue (Purdue ARC)
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are met:
+
+  1. Redistributions of source code must retain the above copyright notice, this
+     list of conditions and the following disclaimer.
+  2. Redistributions in binary form must reproduce the above copyright notice,
+     this list of conditions and the following disclaimer in the documentation
+     and/or other materials provided with the distribution.
+  3. Neither the name of the copyright holder nor the names of its
+     contributors may be used to endorse or promote products derived from
+     this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+  DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+  FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+  DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+  SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+  OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+"""
+
+# Python
+import math
+from angles import shortest_angular_distance
+
+# ROS
+import rospy
+from geometry_msgs.msg import Twist, PoseArray
+from std_msgs.msg import Float64
+from tf.transformations import euler_from_quaternion
+
+class SnakeHeadingController:
+    """Simple heading controller for the snake."""
+    def __init__(self):
+        rospy.init_node('snake_heading_controller')
+
+        self.heading_command = None
+        self.linear_velocity_command = None
+        self.angular_velocity = rospy.get_param('~angular_velocity', 6.28)
+
+        # Publishers
+        self.twist_pub = rospy.Publisher('snake/cmd_vel', Twist, queue_size=1)
+
+        # Subscribers
+        rospy.Subscriber('snake/pose', PoseArray, self.pose_cb)
+        rospy.Subscriber('controller/heading', Float64, self.heading_cb)
+        rospy.Subscriber('controller/velocity', Float64, self.velocity_cb)
+
+        rospy.spin()
+
+    def heading_cb(self, heading_msg):
+        """Callback for heading goal."""
+        self.heading_command = heading_msg.data
+
+    def velocity_cb(self, velocity_msg):
+        """Callback for velocity command."""
+        self.linear_velocity_command = velocity_msg.data
+
+    def pose_cb(self, pose_msg):
+        """Callback for poses from the snake."""
+        if (self.heading_command is not None
+                and self.linear_velocity_command is not None):
+            quat = (pose_msg.poses[0].orientation.x,
+                    pose_msg.poses[0].orientation.y,
+                    pose_msg.poses[0].orientation.z,
+                    pose_msg.poses[0].orientation.w)
+
+            __, __, heading = euler_from_quaternion(quat)
+            error = shortest_angular_distance(heading, self.heading_command)
+            angular_velocity = math.copysign(self.angular_velocity, error)
+
+            twist_msg = Twist()
+            twist_msg.linear.x = self.linear_velocity_command
+            twist_msg.angular.z = angular_velocity
+            self.twist_pub.publish(twist_msg)
+
+if __name__ == "__main__":
+    SnakeHeadingController()

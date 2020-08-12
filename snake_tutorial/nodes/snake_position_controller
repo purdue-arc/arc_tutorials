@@ -1,0 +1,122 @@
+#!/usr/bin/env python
+"""Node to control the position of the snake.
+
+License:
+  BSD 3-Clause License
+
+  Copyright (c) 2020, Autonomous Robotics Club of Purdue (Purdue ARC)
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are met:
+
+  1. Redistributions of source code must retain the above copyright notice, this
+     list of conditions and the following disclaimer.
+  2. Redistributions in binary form must reproduce the above copyright notice,
+     this list of conditions and the following disclaimer in the documentation
+     and/or other materials provided with the distribution.
+  3. Neither the name of the copyright holder nor the names of its
+     contributors may be used to endorse or promote products derived from
+     this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+  DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+  FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+  DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+  SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+  OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+"""
+# Python
+import math
+from threading import Lock
+
+# ROS
+import rospy
+from geometry_msgs.msg import PoseArray, Pose, Point
+from std_msgs.msg import Float64
+from std_srvs.srv import Empty, EmptyResponse
+
+def get_abs_distance(point1, point2):
+    """Calculate Euclidian distance between two points."""
+    delta_x = point2[0] - point1[0]
+    delta_y = point2[1] - point1[1]
+    return math.sqrt(delta_x**2 + delta_y**2)
+
+class SnakePositionController:
+    """Simple position controller for the snake."""
+    def __init__(self):
+        rospy.init_node('snake_position_controller')
+
+        self.goal_queue = []
+        self.goal_queue_lock = Lock()
+
+        self.goal_tolerance = rospy.get_param('~goal_tolerance', 0.5)
+
+        # Publishers
+        self.heading_pub = rospy.Publisher('controller/heading', Float64, queue_size=1)
+        self.goal_queue_pub = rospy.Publisher('controller/goal/queue', PoseArray, queue_size=1)
+        self.goal_pub = rospy.Publisher('controller/goal/current', Point, queue_size=1)
+
+        # Subscribers
+        rospy.Subscriber('snake/pose', PoseArray, self.snake_cb)
+        rospy.Subscriber('controller/goal', Point, self.goal_cb)
+
+        # Services
+        rospy.Service('controller/goal/reset', Empty, self.reset_cb)
+
+        rospy.spin()
+
+    def goal_cb(self, point_msg):
+        """Callback for goal."""
+        self.goal_queue_lock.acquire()
+        goal = (point_msg.x, point_msg.y)
+        if not self.goal_queue:
+            self.goal_queue.append(goal)
+            self.publish_goal_queue()
+        elif get_abs_distance(goal, self.goal_queue[-1]) > self.goal_tolerance:
+            self.goal_queue.append(goal)
+            self.publish_goal_queue()
+        else:
+            rospy.loginfo_throttle(5.0, 'ignoring new goal that is too close to preceding goal')
+        self.goal_queue_lock.release()
+
+    def snake_cb(self, pose_msg):
+        """Callback for poses from the snake."""
+        self.goal_queue_lock.acquire()
+        if self.goal_queue:
+            pose = (pose_msg.poses[0].position.x, pose_msg.poses[0].position.y)
+            goal = self.goal_queue[0]
+
+            heading = math.atan2(goal[1] - pose[1], goal[0] - pose[0])
+            self.heading_pub.publish(heading)
+            self.goal_pub.publish(Point(x=pose[0], y=pose[1]))
+
+            if get_abs_distance(goal, pose) < self.goal_tolerance:
+                self.goal_queue.pop(0)
+                self.publish_goal_queue()
+        self.goal_queue_lock.release()
+
+    def reset_cb(self, __):
+        """Reset the current goal callback queue."""
+        self.goal_queue_lock.acquire()
+        self.goal_queue = []
+        self.publish_goal_queue()
+        self.goal_queue_lock.release()
+        return EmptyResponse()
+
+    def publish_goal_queue(self):
+        """Publish the current state of the goal queue."""
+        pose_array_msg = PoseArray()
+        pose_array_msg.poses = []
+        for pose in self.goal_queue:
+            pose_msg = Pose()
+            pose_msg.position.x, pose_msg.position.y = pose
+            pose_array_msg.poses.append(pose_msg)
+        self.goal_queue_pub.publish(pose_array_msg)
+
+if __name__ == "__main__":
+    SnakePositionController()
