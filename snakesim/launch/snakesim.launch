@@ -3,13 +3,13 @@
   <arg name="use_rqt_steering" default="true"/>
   <arg name="use_pygame" default="true"/>
 
-  <include file="$(find snakesim)/launch/snake.launch">
+  <include file="$(find snakesim)/launch/snake_node.launch">
     <arg name="use_pygame" value="$(arg use_pygame)"/>
   </include>
 
-  <node if="$(arg use_rviz)" type="rviz" pkg="rviz" name="snake_rviz_display" args="-d $(find snakesim)/rviz/snake.rviz"/>
+  <node if="$(arg use_rviz)" type="rviz" pkg="rviz" name="snake_display" args="-d $(find snakesim)/rviz/snake.rviz"/>
 
-  <node if="$(arg use_rqt_steering)" type="rqt_robot_steering" pkg="rqt_robot_steering" name="snake_rqt_steering">
+  <node if="$(arg use_rqt_steering)" type="rqt_robot_steering" pkg="rqt_robot_steering" name="snake_controller">
     <param name="default_topic" value="snake/cmd_vel"/>
     <param name="default_vx_min" value="0.0"/>
     <param name="default_vx_max" value="2.0"/>

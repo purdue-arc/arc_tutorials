@@ -1,0 +1,7 @@
+<launch>
+  <node type="snake_heading_controller" pkg="snake_tutorial" name="snake_heading_controller"/>
+  <node type="snake_position_controller" pkg="snake_tutorial" name="snake_position_controller"/>
+  <node type="snake_goal_relay" pkg="snake_tutorial" name="snake_goal_controller"/>
+
+  <node type="rostopic" pkg="rostopic" name="snake_velocity_controller" args="pub /controller/velocity std_msgs/Float64 'data: 2.0'"/>
+</launch>
