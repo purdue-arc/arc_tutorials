@@ -39,7 +39,7 @@ import rospy
 from geometry_msgs.msg import PoseArray, Point
 from std_msgs.msg import Float64
 
-class SnakePositionController:
+class SnakePositionController(object):
     """Simple position controller for the snake."""
     def __init__(self):
         rospy.init_node('snake_position_controller')

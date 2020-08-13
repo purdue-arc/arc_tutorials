@@ -42,7 +42,10 @@ if __name__ == "__main__":
     goal_pub = rospy.Publisher('controller/goal', Point, queue_size=1)
 
     # Subscribers
-    rospy.Subscriber('snake/goal', PointStamped,
-        lambda msg, pub=goal_pub : pub.publish(msg.point))
+    rospy.Subscriber(
+        'snake/goal',
+        PointStamped,
+        lambda msg, pub=goal_pub: pub.publish(msg.point)
+    )
 
     rospy.spin()

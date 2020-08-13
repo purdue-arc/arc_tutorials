@@ -41,7 +41,7 @@ from geometry_msgs.msg import Twist, PoseArray
 from std_msgs.msg import Float64
 from tf.transformations import euler_from_quaternion
 
-class SnakeHeadingController:
+class SnakeHeadingController(object):
     """Simple heading controller for the snake."""
     def __init__(self):
         rospy.init_node('snake_heading_controller')
