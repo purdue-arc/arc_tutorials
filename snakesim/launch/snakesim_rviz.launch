@@ -3,5 +3,5 @@
   <arg name="use_rqt_steering" default="false"/>
   <arg name="use_pygame" default="false"/>
 
-  <include file="$(find snakesim)/launch/snake_demo.launch" pass_all_args="true"/>
+  <include file="$(find snakesim)/launch/snakesim.launch" pass_all_args="true"/>
 </launch>
