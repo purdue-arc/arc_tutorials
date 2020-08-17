@@ -51,7 +51,7 @@ class Renderer(object):
         self.padding = padding
         self.scaling = scaling
         window_size = int(scaling * (bounds + 2*padding))
-        pygame.init()
+        pygame.display.init()
         self._screen = pygame.display.set_mode((window_size, window_size))
 
     def _convert_to_display_coords(self, position):
