@@ -68,9 +68,9 @@ Even though this is written in Python, not C++, you still need to use catkin
 in order to build the package so that you can source it. If you have a catkin
 workspace set up as described in the [ros tutorials](http://wiki.ros.org/catkin/Tutorials/create_a_workspace),
 simply clone this repository into `~/catkin_ws/src/` and build it. Building may
-be done by calling `catkin_make` from the root workspace directory. After the
-package is built, source it by running `source devel/setup.bash` from the root
-workspace directory. Note that you must source this file from every new terminal
+be done by calling `catkin_make` or `catkin build` from the root workspace directory.
+After the package is built, source it by running `source devel/setup.bash` from the
+root workspace directory. Note that you must source this file from every new terminal
 you intend to run this code from.
 
 ### Launching
