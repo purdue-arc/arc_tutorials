@@ -32,7 +32,7 @@ git clone https://github.com/purdue-arc/arc_tutorials.git
 If you recieve an error that git is not installed, you can install it with the
 following command on Ubuntu (our WSL2 instance is Ubuntu):
 ```bash
-sudo apt install git -y
+sudo apt install -y git
 ```
 
 Back to building the image.
@@ -91,7 +91,7 @@ fact that it ran there means the development environment is properly set up.
 Commiting changes allows you to save the current state of your running
 container to the image (or a new image). This can be useful if are doing some
 rapid iteration and testing and need to install a few extra files. Or if you
-want to modify something outside of the shared directory like your `.bashrc` or
+want to modify something outside of the shared directory like your `bashrc` or
 password.
 
 If these are more persistant changes that other users (like teammates
