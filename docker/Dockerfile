@@ -14,5 +14,7 @@ RUN groupadd -o -g $GID $USER && \
     useradd -om -u $UID -g $GID -G sudo -s /bin/bash $USER && \
     echo "$USER:$PW" | chpasswd
 
+RUN echo '\nsource /ros_entrypoint.sh' >> home/$USER/.bashrc
+
 USER $USER
 WORKDIR /home/$USER
