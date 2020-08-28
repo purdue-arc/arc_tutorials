@@ -2,7 +2,7 @@
 This package contains a snake game written in Python with ROS bindings.
 It will be used as an example in order to teach ROS by writing a control
 algorithm for the snake. It has been designed to have a somewhat similar
-interface to the turtlesim package.
+interface to the [turtlesim](http://wiki.ros.org/turtlesim) package.
 
 ## Snake Game
 Consider familiarizing yourself with the traditional game of snake that this is
@@ -28,8 +28,8 @@ increase your score and number of segments by reaching the goal.
 `snake/cmd_vel` (geometry_msgs/Twist)
 
 The linear and angular command velocity for the head of the snake. The snake
-will execute a velocity command for 1 second then time out. Twist.linear.x is
-the forward velocity and Twist.angular.z is the angular velocity.
+will execute a velocity command for 1 second then time out. `Twist.linear.x` is
+the forward velocity and `Twist.angular.z` is the angular velocity.
 
 ### Published Topics
 `snake/pose` (geometry_msgs/PoseArray)
@@ -62,7 +62,6 @@ Resets the game to the start configuration. This includes the pose of the
 snake, position of the goal, score, and active flag.
 
 ## Instructions
-
 ### Building and Sourcing the Package
 Even though this is written in Python, not C++, you still need to use catkin
 in order to build the package so that you can source it. If you have a catkin
