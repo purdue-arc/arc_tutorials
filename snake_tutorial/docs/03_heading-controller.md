@@ -52,7 +52,7 @@ if __name__ == "__main__":
 ```
 What we've done in the first part of this program is create a class called
 `SnakeHeadingController`. A class lets you group methods and variables together
-inside an object. It is a key part of Object Oriented Programming (OOO). It is
+inside an object. It is a key part of Object Oriented Programming (OOP). It is
 useful for us, because we're going to have several variables holding data that
 we'll need to access from different methods.
 
