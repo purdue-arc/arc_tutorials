@@ -30,6 +30,7 @@ License:
   OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 
+from threading import Thread
 import numpy as np
 import pygame
 
@@ -53,6 +54,7 @@ class Renderer(object):
         window_size = int(scaling * (bounds + 2*padding))
         pygame.display.init()
         self._screen = pygame.display.set_mode((window_size, window_size))
+        self._thread = None
 
     def _convert_to_display_coords(self, position):
         """Convert game coordinates to display coordinates."""
@@ -64,6 +66,11 @@ class Renderer(object):
 
     def render(self, goal, snake):
         """Render the current state of the game."""
+
+        if self._thread is not None and self._thread.is_alive():
+            # Still rendering the last frame, drop this one
+            return
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -94,4 +101,5 @@ class Renderer(object):
             int(snake.head.radius*self.scaling)
         )
 
-        pygame.display.flip()
+        self._thread = Thread(target=pygame.display.flip)
+        self._thread.start()
