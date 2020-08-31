@@ -32,7 +32,7 @@ License:
 """
 
 # Python
-import math
+from math import copysign
 from angles import shortest_angular_distance
 
 # ROS
@@ -47,8 +47,8 @@ class SnakeHeadingController(object):
         rospy.init_node('snake_heading_controller')
 
         self.heading_command = None
-        self.linear_velocity_command = None
-        self.angular_velocity = rospy.get_param('~angular_velocity', 6.28)
+        self.ANGULAR_VELOCITY = rospy.get_param('~angular_velocity', 6.28)
+        self.LINEAR_VELOCITY = rospy.get_param('~linear_velocity', 2.0)
 
         # Publishers
         self.twist_pub = rospy.Publisher('snake/cmd_vel', Twist, queue_size=1)
@@ -56,7 +56,6 @@ class SnakeHeadingController(object):
         # Subscribers
         rospy.Subscriber('snake/pose', PoseArray, self.pose_cb)
         rospy.Subscriber('controller/heading', Float64, self.heading_cb)
-        rospy.Subscriber('controller/velocity', Float64, self.velocity_cb)
 
         rospy.spin()
 
@@ -64,14 +63,9 @@ class SnakeHeadingController(object):
         """Callback for heading goal."""
         self.heading_command = heading_msg.data
 
-    def velocity_cb(self, velocity_msg):
-        """Callback for velocity command."""
-        self.linear_velocity_command = velocity_msg.data
-
     def pose_cb(self, pose_msg):
         """Callback for poses from the snake."""
-        if (self.heading_command is not None
-                and self.linear_velocity_command is not None):
+        if (self.heading_command is not None):
             quat = (pose_msg.poses[0].orientation.x,
                     pose_msg.poses[0].orientation.y,
                     pose_msg.poses[0].orientation.z,
@@ -79,11 +73,11 @@ class SnakeHeadingController(object):
 
             __, __, heading = euler_from_quaternion(quat)
             error = shortest_angular_distance(heading, self.heading_command)
-            angular_velocity = math.copysign(self.angular_velocity, error)
+            angular_velocity_command = copysign(self.ANGULAR_VELOCITY, error)
 
             twist_msg = Twist()
-            twist_msg.linear.x = self.linear_velocity_command
-            twist_msg.angular.z = angular_velocity
+            twist_msg.linear.x = self.LINEAR_VELOCITY
+            twist_msg.angular.z = angular_velocity_command
             self.twist_pub.publish(twist_msg)
 
 if __name__ == "__main__":

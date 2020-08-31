@@ -22,12 +22,15 @@ in the context of a catkin workspace. You will need to do that to run the
 `snake_tutorial` later on. No need to worry about what that means exactly, but
 for now, make the following directory structure before cloning the repo.
 ```bash
-cd <directory where you want to store your ARC projects>
-# ex: mkdir ~/src && cd ~/src
+cd
 mkdir -p arc_ws/src
 cd arc_ws/src
 git clone https://github.com/purdue-arc/arc_tutorials.git
 ```
+Note that you may modify the first command if you would like the workspace in a
+directory other than your home folder. The rest of the tutorial will assume it
+is in your home folder when giving absolute `cd` commands, so modify those if
+you choose a different directory.
 
 If you recieve an error that git is not installed, you can install it with the
 following command on Ubuntu (our WSL2 instance is Ubuntu):

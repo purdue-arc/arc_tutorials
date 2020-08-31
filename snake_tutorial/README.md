@@ -15,18 +15,12 @@ the basic controllers. Refer to the `docs` subfolder for this content.
 ### snake_heading_controller
 This node uses a [bang-bang controller](https://en.wikipedia.org/wiki/Bang%E2%80%93bang_control)
 to modulate the snake's input angular velocity such that the heading tracks a goal.
-It also passes through a linear velocity in order to create the Twist message.
 
 #### Subscribed Topics
 `controller/heading` (std_msgs/Float64)
 
 The desired heading for the snake. This is given as positive rotation about the
 Z axis in radians.
-
-`controller/velocity` (std_msgs/Float64)
-
-The desired linear velocity value to be passed through into the output Twist
-message. This is given in length units per second.
 
 `snake/pose` (geometry_msgs/PoseArray)
 
