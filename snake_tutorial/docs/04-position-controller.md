@@ -1,4 +1,4 @@
-# Heading Controller
+# Position Controller
 ## Overview
 Our snake is now controlled by heading. Why don't we try to extend it another
 layer and control with with position? That seems useful if we want to tell it

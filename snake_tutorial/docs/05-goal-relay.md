@@ -1,4 +1,4 @@
-# Heading Controller
+# Goal Relay
 ## Overview
 Our snake is now controlled by position. If we want to keep things really
 simple, the snake can just chase the goal with no regard for walls or its own
