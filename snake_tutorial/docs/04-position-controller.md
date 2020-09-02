@@ -6,7 +6,7 @@ to chase the goal or give it a series of waypoints.
 
 We'll create a closed loop controller like last time. Our inputs will be the
 current position of the snake's head and the commanded position. Our output will
-be the required heading to reach that positiion.
+be the required heading to reach that positition.
 
 ## Creating the Program
 This will be just like the last program. Let's call it
@@ -213,8 +213,8 @@ This tutorial was much more hands off, so hopefully you were able to apply a lot
 of the knowledge you gained while writing the first node in order to write this
 one.
 
-Below you'll see the final file we developed. Feel free to experiment with making
-changes to this node, or move on to the next one.
+Below, you'll see the final file we developed. Feel free to experiment with
+making changes to this node, or move on to the next one.
 
 ### Full File for Reference:
 ```python
