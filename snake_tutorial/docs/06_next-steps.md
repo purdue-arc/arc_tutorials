@@ -197,13 +197,13 @@ A full list of atomic operations are proved [online](https://docs.python.org/2/f
 
 ### Debugging
 There are going to be many times where ROS wants to make you slam your head into a wall.
-Luckily there are tools to reduce that frustration and help determine the issue.
+Luckily there are tools to reduce that frustration and help spot issues.
 
 This is a short list of the many options avaliable:
 - [rqt_graph](http://wiki.ros.org/rqt_graph): This ROS package allows users to 
 visualize the ROS computation graph. In other words, you can see what nodes 
 are active as well as
-how nodes are communicating. Here is an example of an RQT graph:
+how nodes are communicating. Here is an example of a graph:
 ![rqt graph example](images/rqt-example.png)
 - [roswtf](http://wiki.ros.org/roswtf): This ROS package is a general
 debugging tool that finds issues by searching your workspace. Additionally
@@ -213,10 +213,10 @@ in debugging nodes. The two commands you might find most useful are
 `echo` and `pub`, which help in manually receiving and sending messages. This
 is espcially helpful for testing or when running nodes independently.
 - [rosnode](http://wiki.ros.org/rosnode): This is another useful command-line
-tool for debugging nodes, except it deals with specific nodes. You can use
-`info` to print out various information about a given node.
+tool for debugging nodes. You can use `info` to print out various information 
+about a given node.
 - [Python Specific Debugger (PDB)](https://docs.python.org/3/library/pdb.html):
-This a tool built to help debug python applications. It was used heavily in
+This is a tool built to help debug python applications. It was used heavily in
 making the `snakesim` package.
 
 ## Additional Resources and Getting Help
