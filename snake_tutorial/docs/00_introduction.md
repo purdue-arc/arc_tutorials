@@ -1,128 +1,26 @@
 # Snake Tutorial Introduction
-This set of documents will walk you through the process of creating a simple,
-snake-game controller. Before working through this tutorial, ensure you have
+## Tutorial Overview
+Before we dive into ROS, let's breakdown what we will be accomplishing.
+Our end goal is to automate a game of Snake. If you have never heard of
+Snake, then check out an example 
+[here](https://www.google.com/search?client=firefox-b-1-d&q=snake+game). 
+We have made a ROS adaptation of it, which is what you will be automating.
+
+There are two parts to this tutorial:
+- Controller walkthrough: Here we will walk you through the
+  creation of your own snake-controller. This will teach the basics of
+  ROS and principles related to automation.
+- Controller expansion: By the end of the previous section, you will 
+  have a simple but functional controller. To strengthen your ROS skills, 
+  you will now look at improving the controller and seeing how high of 
+  score your snake can get.
+
+> Before continuing, ensure you have
 gone through the process of
 [setting up your ARC development environment](../../docs/00_introduction.md).
 
-By the end of this tutorial, you should have an understanding of ROS and
-how to use the development tools surrounding it.
-
-## ROS Concepts
-We discussed in the setup steps what ROS stands for and how it can be used to
-develop robotic applications. Now we will take an in-depth look at how ROS
-accomplishes this.
-
-### ROS Filesystem
-Software in ROS is organized in `packages`. Packages contain nodes, 
-configuration files and more. When working on a project, you may have multiple
-packages all responsible for various tasks. For instance, within this tutorial
-you will be given a package for running the snake game (snakesim) and another
-for learning how to control the snake (snake_tutorial).
-
-Projects are often managed within a catkin workspace, which you setup
-as part of your ARC development environment.
-
-The simplified file structure for a workspace is as follows:
-```
-catkin_ws/
-│
-└───src/
-│   └───example_package/
-│   └───another_package/
-│
-└───devel/
-|   └─setup.bash
-|
-└───build/
-└───logs/
-└───install/
-
-```
-`src/` is where the source code for all packages are stored. This commonly
-contains repositories tracked by Git.
-
-`build/` and `logs/` are created when building your code. We won't go into any
-detail on these.
-
-`devel/` and `install/` contain executables and bash files for setting up your
-environment. It is optional to have an `install/` directory; we won't be using
-one in this tutorial. There are a few distinctions between the two that we won't
-get into.
-
-Each time you open your workspace in a new terminal you will need to source this
-setup file by running:
-```bash
-source devel/setup.bash
-```
-
-Here is a simplified file structure for packages:
-```
-example_package/
-│
-└───src/
-│   │
-│   └───example_package/
-│
-└───nodes/
-│
-└───launch/
-│
-└───msg/
-│
-└───srv/
-│
-└───scripts/
-│
-└───CMakeLists.txt
-│
-└───package.xml
-```
-
-`src/example_package/` is where a majority of the magic happens.
-This is where source files will be stored.
-
-`nodes/` contains node types, which we will cover in the next section.
-
-`launch/` contains launch files.
-
-`msg/` contains message types.
-
-`src/` contains service types.
-
-`scripts/` contains executable scripts.
-
-`CMakeLists.txt` is a build file used by your catkin workspace.
-
-`package.xml` is a manifest that contains general package information.
-
-### ROS Data Types
-Now that we have a rough idea of where files are stored, lets look at what
-these files actually are.
-
-The types of data within ROS can be broken up into 4 main types:
-- Nodes: These are independent processes that perform computations. These
- often relate nicely to physical components within a system, like a camera 
- or an arm for instance.
-- Messages: In order for different nodes to communicate, they need messages
- to define the structure of the data they are sending. If a map node wanted
- to tell a navigation node which way to move, it would have to use a message
- (like a 3-point coordinate) to pass that data.
-- Topics: Messages help define the type of data we are sending, but topics
- are what deliver the messages. Without topics, a node would never know which node to send it's messages to. Nodes can either publish
- or subscribe to a topic, which means they can either receive all messages
- on that topic, send messages to that topic, or both. 
-- Services: Topics are nice because it means nodes can send information
- without worrying about if another node receives it. However sometimes it
- may be necessary that a node receives a response from another before moving on.
- This is where services come in; services allow for request / reply interactions.
-
-Here's a helpful visualization of node communication:
-
-![Node communication](images/node-communication.png)
-
 ## Verification
-As mentioned, you should have already setup your ARC development environment.
-Beyond that, just ensure your file structure matches the following:
+Ensure your file structure matches the following:
 ```
 catkin_ws/ <-- You should be here
 │
@@ -140,9 +38,11 @@ catkin_ws/ <-- You should be here
        │
        └───snakesim/ (snake_tutorial backend)
 ```
+We will explain the file structure in-depth later, so don't worry if it doesn't
+make any sense now.
 
 ## Instructions
-To complete this tutorial, simply follow each provided document in order. Ensure
+To complete this tutorial, simply follow each provided documents in order. Ensure
 you are reading thoroughly, as these tutorials are packed with tons of
 information.
 
