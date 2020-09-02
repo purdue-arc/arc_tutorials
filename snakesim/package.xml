@@ -11,11 +11,11 @@
   <author email="baxter26@purdue.edu">James Baxter</author>
 
   <buildtool_depend>catkin</buildtool_depend>
-  <exec_depend>rospy</exec_depend>
   <exec_depend>geometry_msgs</exec_depend>
+  <exec_depend>rospy</exec_depend>
   <exec_depend>std_msgs</exec_depend>
   <exec_depend>std_srvs</exec_depend>
+  <exec_depend>tf</exec_depend>
   <exec_depend>python-numpy</exec_depend>
   <exec_depend>python-pygame</exec_depend>
-  <exec_depend>tf</exec_depend>
 </package>

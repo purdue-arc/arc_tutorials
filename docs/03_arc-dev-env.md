@@ -140,3 +140,93 @@ xeyes
 
 You'll see a little pair of eyes follow your cursor around. You can X out of it
 or hit `CTRL+C` in order to kill the program.
+
+## VS Code Setup
+When working in a larger project, you might find it a hassle to edit multiple
+files with vim or other CLI text editors. An alternative is Visual Studio 
+Code, a text editor made by Microsoft to be lightweight and adaptable. With a 
+few extensions, VS Code can be customized to work efficiently within
+ARC's development environment. It's also worth noting that VS Code is 
+cross-compatible, so Windows, Linux and Mac users will all be able to follow
+this tutorial.
+
+> Note: This isn't required for working within the ARC development 
+  environment. It's purely a tool that some may find useful.
+
+### Installing VS Code
+Available builds can be found [here](https://code.visualstudio.com/).
+
+### Extension Installation
+After downloading and installing VS Code, open it to find a menu on the
+left hand side. Then click the icon containing stacked blocks, this is 
+your extension menu. Here you can install applications to give
+VS Code more capabilities. 
+
+If you are running WSL2, you should start by installing the [Remote - WSL](
+   https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-wsl
+) 
+extension. You can use the search bar at the top to find it, then simply 
+click install. If you aren't using WSL2, you can skip to installing
+the Python extension below.
+
+After installing Remote WSL, you will need to reopen VS Code within your Ubuntu
+environment. You can do this by hitting `CTRL + SHIFT + P`, then typing:
+
+```
+Remote-WSL: New Window
+```
+
+Hit enter and it should bring up a new VS Code window running on Ubuntu. You
+can go ahead and close the old VS Code instance. Return to the extension menu,
+then you should see a new section labeled: _WSL:Ubuntu - Installed_
+
+In order for any extensions to take place within WSL, you need to ensure that
+they are listed here.
+
+Now we need to ensure that VS Code recognizes the primary language we use for
+developement, [Python](https://marketplace.visualstudio.com/items?itemName=ms-python.python). Which has it's own extension in the marketplace.
+
+Next, you are going to want the [Docker](
+   https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-docker
+) extension. This will enable you to run
+ARC docker containers.
+
+Lastly, it's recommended you get the [Git Graph](
+   https://marketplace.visualstudio.com/items?itemName=mhutchie.git-graph
+) extension. This isn't required,
+however it helps in any environment where you are utilizing git version control.
+Git Graph can visualize branches, merges, and commits to help organize your
+codebase. 
+
+After installation, your extension list should look like this:
+![VS Code menu](images/vscode-menu.png)
+
+If you aren't using WSL, then the section bar will just say: _Local - Installed_.
+
+### Extension Usage
+Now that you have the extensions installed, how do you use them? 
+
+We are already using the WSL extension, which you can verify by seeing a _WSL: 
+Ubuntu_ label in the bottom left corner (unless you are on Linux or Mac).
+
+To open the console, enter: 
+
+```
+CTRL + SHIFT + ~
+```
+
+You can now bash commands as per usual. If there is a file or folder you 
+want to edit in VS Code, run:
+
+```
+code (folder or file name)
+```
+
+For utilizing Docker in VS Code, click the Docker icon on the menu bar.
+Now you will be able to see all images and containers you are using.
+You should still use `docker-build.sh` and `docker-run.sh` scripts for
+running ARC containers, however this is a useful tool for managing
+versions.
+
+If you intend on using VS Code, it might be helpful to check out
+their own [tutorials](https://code.visualstudio.com/docs/introvideos/basics).

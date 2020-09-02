@@ -12,6 +12,9 @@
 
   <buildtool_depend>catkin</buildtool_depend>
   <exec_depend>geometry_msgs</exec_depend>
-  <exec_depend>std_msgs</exec_depend>
+  <exec_depend>python-angles</exec_depend>
+  <exec_depend>rospy</exec_depend>
   <exec_depend>snakesim</exec_depend>
+  <exec_depend>std_msgs</exec_depend>
+  <exec_depend>tf</exec_depend>
 </package>

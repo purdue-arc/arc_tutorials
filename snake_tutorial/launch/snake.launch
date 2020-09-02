@@ -2,11 +2,15 @@
   <arg name="use_rviz" default="false"/>
   <arg name="use_pygame" default="true"/>
 
+  <arg name="linear_velocity" default="2.0"/>
+
   <include file="$(find snakesim)/launch/snakesim.launch">
     <arg name="use_rviz" value="$(arg use_rviz)"/>
     <arg name="use_pygame" value="$(arg use_pygame)"/>
     <arg name="use_rqt_steering" value="false"/>
   </include>
 
-  <include file="$(find snake_tutorial)/launch/snake_controller.launch"/>
+  <include file="$(find snake_tutorial)/launch/snake_controller.launch">
+    <arg name="linear_velocity" value="$(arg linear_velocity)"/>
+  </include>
 </launch>
