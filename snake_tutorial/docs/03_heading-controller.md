@@ -1009,7 +1009,7 @@ if __name__ == "__main__":
 ```python
 #!/usr/bin/env python
 ```
-This is our shebang. It tells the commandline how to execute our program.
+This is our shebang. It tells the command line how to execute our program.
 
 ```python
 """Node to control the heading of the snake.
@@ -1017,7 +1017,7 @@ This is our shebang. It tells the commandline how to execute our program.
 License removed for brevity
 """
 ```
-This is the docstring for the file. It gives a quick description of it, and also
+This is the docstring for the file. It gives a quick description and also
 includes a license.
 
 ```python
@@ -1055,7 +1055,7 @@ class SnakeHeadingController(object):
 ```
 This is the class definition for `SnakeHeadingController` and the `init` method.
 The `init` method is run when a new `SnakeHeadingController` is made. It
-initializes the node through ROS and gives it a name. The heading command
+initializes the node through ROS and gives it a name. The `heading_command`
 variable is initialized as `None` so that we can distinguish between a lack of a
 command and a command of 0. Two constants are created from ROS parameters, which
 can be set in launch files or on the commandline.
