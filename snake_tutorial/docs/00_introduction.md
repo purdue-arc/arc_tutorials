@@ -1,7 +1,7 @@
 # Snake Tutorial Introduction
 This set of documents will walk you through the process of creating a simple,
 snake-game controller. Before working through this tutorial, ensure you have
-gone through the process of 
+gone through the process of
 [setting up your ARC development environment](../../docs/00_introduction.md).
 
 By the end of this tutorial, you should have an understanding of ROS and
@@ -19,7 +19,7 @@ packages all responsible for various tasks. For instance, within this tutorial
 you will be given a package for running the snake game (snakesim) and another
 for learning how to control the snake (snake_tutorial).
 
-Projects are often managed within a `catkin workspace`, which you setup
+Projects are often managed within a catkin workspace, which you setup
 as part of your ARC development environment.
 
 The simplified file structure for a workspace is as follows:
@@ -27,20 +27,31 @@ The simplified file structure for a workspace is as follows:
 catkin_ws/
 │
 └───src/
-│   │
 │   └───example_package/
+│   └───another_package/
 │
 └───devel/
-    │
-    └─setup.bash
-```
-`src/` is where all packages are stored.
-
-`devel/` contains a bash file for setting up your environment. Each time you
-open your workspace in a new terminal you will need to source this setup file
-by running:
+|   └─setup.bash
+|
+└───build/
+└───logs/
+└───install/
 
 ```
+`src/` is where the source code for all packages are stored. This commonly
+contains repositories tracked by Git.
+
+`build/` and `logs/` are created when building your code. We won't go into any
+detail on these.
+
+`devel/` and `install/` contain executables and bash files for setting up your
+environment. It is optional to have an `install/` directory; we won't be using
+one in this tutorial. There are a few distinctions between the two that we won't
+get into.
+
+Each time you open your workspace in a new terminal you will need to source this
+setup file by running:
+```bash
 source devel/setup.bash
 ```
 
