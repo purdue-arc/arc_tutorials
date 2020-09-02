@@ -1,14 +1,6 @@
 
 ## Further Subscriber Callback Notes
-This is a quick note about dealing with more complex subscriber callbacks. It
-isn't required for finishing the tutorial, but you may find this information
-useful if you expand upon the basic controller you'll develop. It does present
-some somewhat advanced programming concepts, so you may need to do some outside
-research if you're not familiar with threading and atomic operations.
-
-In rospy, the callbacks all happen in different threads. Essentially, you're not
-guaranteed that one callback will finish before another one get's started. This
-can be an issue if you have code like the following:
+This can be an issue if you have code like the following:
 ```python
 def callback_one(self, msg):
     self.important_variable = msg.data
@@ -27,3 +19,9 @@ logarithm of a negative number.
 
 You could also have issues with something like iterating through an array if
 the array is being changed in a different callback.
+
+## picking appropriate message types
+
+## debugging tips
+
+## where to get help

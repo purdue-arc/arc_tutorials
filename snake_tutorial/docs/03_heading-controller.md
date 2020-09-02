@@ -19,12 +19,12 @@ Let's go ahead and implement this controller in Python now.
 We need to start by creating a new file. In the last tutorial, we were left with
 the proper directory structure to start writing code. We need to make a new file
 in the `nodes` directory to house our code. We'll call this file
-`snake_position_controller`. 
+`snake_heading_controller`. 
 
 Note that it is general practice not to add a `.py` file extension to nodes.
 This is because the file name becomes the name of the node when building our
-package with catkin. Ex: `roslaunch snake_controller snake_position_controller`
-is cleaner than `roslaunch snake_controller snake_position_controller.py`.
+package with catkin. Ex: `roslaunch snake_controller snake_heading_controller`
+is cleaner than `roslaunch snake_controller snake_heading_controller.py`.
 
 Let's start the file by writing a shebang and docstring.
 ```python
