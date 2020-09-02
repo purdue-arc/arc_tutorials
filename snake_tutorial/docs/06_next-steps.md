@@ -196,11 +196,28 @@ been thread safe.
 A full list of atomic operations are proved [online](https://docs.python.org/2/faq/library.html#what-kinds-of-global-value-mutation-are-thread-safe).
 
 ### Debugging
-rqt_graph - good visual
-roswtf - does some automated tests, hit or miss, has a funny name
-rostopic pub and echo -  good for running nodes independently or taking a look at output
-rosnode info -  good for checking the topic names and types for a node
-pdb - python specific debugger. A bit difficult to learn how to use, but was super useful when making snakesim
+There are going to be many times where ROS wants to make you slam your head into a wall.
+Luckily there are tools to reduce that frustration and help determine the issue.
+
+This is a short list of the many options avaliable:
+- [rqt_graph](http://wiki.ros.org/rqt_graph): This ROS package allows users to 
+visualize the ROS computation graph. In other words, you can see what nodes 
+are active as well as
+how nodes are communicating. Here is an example of an RQT graph:
+![rqt graph example](images/rqt-example.png)
+- [roswtf](http://wiki.ros.org/roswtf): This ROS package is a general
+debugging tool that finds issues by searching your workspace. Additionally
+it has a funny name.
+- [rostopic](http://wiki.ros.org/rostopic): This command-line tool can be used 
+in debugging nodes. The two commands you might find most useful are
+`echo` and `pub`, which help in manually receiving and sending messages. This
+is espcially helpful for testing or when running nodes independently.
+- [rosnode](http://wiki.ros.org/rosnode): This is another useful command-line
+tool for debugging nodes, except it deals with specific nodes. You can use
+`info` to print out various information about a given node.
+- [Python Specific Debugger (PDB)](https://docs.python.org/3/library/pdb.html):
+This a tool built to help debug python applications. It was used heavily in
+making the `snakesim` package.
 
 ## Additional Resources and Getting Help
 If you're part of the Autonomous Robotics Club of Purdue, you can post questions
