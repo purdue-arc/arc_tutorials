@@ -10,18 +10,21 @@ our control signal that we send to the snake. As a block diagram, it may look
 like this:
 ![heading controller](images/heading-controller.png)
 
+This node is also going to handle the linear velocity command too. We're just
+going to keep that at a constant value in order to keep things simple.
+
 ## Creating the Program
 Let's go ahead and implement this controller in Python now.
 
 We need to start by creating a new file. In the last tutorial, we were left with
 the proper directory structure to start writing code. We need to make a new file
 in the `nodes` directory to house our code. We'll call this file
-`snake_position_controller`. 
+`snake_heading_controller`. 
 
 Note that it is general practice not to add a `.py` file extension to nodes.
 This is because the file name becomes the name of the node when building our
-package with catkin. Ex: `roslaunch snake_controller snake_position_controller`
-is cleaner than `roslaunch snake_controller snake_position_controller.py`.
+package with catkin. Ex: `roslaunch snake_controller snake_heading_controller`
+is cleaner than `roslaunch snake_controller snake_heading_controller.py`.
 
 Let's start the file by writing a shebang and docstring.
 ```python
@@ -104,8 +107,8 @@ docstring:
 import rospy
 ```
 An import command lets you pull in functionality from other Python files. This
-is super useful to be able to re-use code and write small, module files. If you
-look at the source of the `snakesim` package, you will see it is full of imports.
+is super useful to be able to re-use code and write small, modular files. If you
+look at the source of the snakesim package, you will see it is full of imports.
 
 Here is our current file for reference:
 ```python
@@ -508,7 +511,6 @@ from math import copysign
 
 Now that we have all that out of the way, let's actually write the logic for the
 loop. Modify the body of the pose callback to be the following:
-
 ```python
         if (self.heading_command is not None):
             quat = (pose_msg.poses[0].orientation.x,
@@ -582,6 +584,25 @@ We'll be able to test this shortly, but it isn't ready just yet.
 Earlier we made a publisher and we wrote the logic to get the value to publish.
 One of the last things we need is actually publishing the value.
 
+Like we stated earlier, this node is going to use a constant value for the
+linear velocity command for the snake. Let's define that constant now in the
+`init` function:
+```python
+self.LINEAR_VELOCITY = 2.0
+```
+Note that we are using all uppercase for our contants. This is just a convention
+to make it easier for others to understand our code.
+
+Now that we have the value, we can publish our ROS message. We'll construct a
+new message of the correct type, populate our values, then publish it. This will
+take place at the end of the pose callback (`pose_cb`).
+```python
+            twist_msg = Twist()
+            twist_msg.linear.x = self.LINEAR_VELOCITY
+            twist_msg.angular.z = angular_velocity_command
+            self.twist_pub.publish(twist_msg)
+```
+
 Here's the current file for reference:
 ```python
 #!/usr/bin/env python
@@ -643,7 +664,30 @@ if __name__ == "__main__":
     SnakeHeadingController()
 ```
 
+We could go ahead and test this right now, but we're going to do a little bit of
+finishing touches first.
+
 ## Using Parameters
+Currently, we have two contants in our code, `ANGULAR_VELOCITY` and
+`LINEAR_VELOCITY`. If we want to change them, we would need to edit the Python
+file for the node. That may be OK if we never expect these values to change,
+but ROS actually has a method for handling parameters that let's you set them
+the moment you launch a node. This can be useful if the parameters might need to
+be different under different use cases, or it is a value you want the end user
+to tune.
+
+Replace our existing definitions of these variables with the below:
+```python
+        self.ANGULAR_VELOCITY = rospy.get_param('~angular_velocity', 6.28)
+        self.LINEAR_VELOCITY = rospy.get_param('~linear_velocity', 2.0)
+```
+Now, we are using `rospy` in order to get these parameters from a parameter
+server. We'll talk about how to set those through ROS in just a minute. The name
+of the parameter is the first argument, and the default value is the second.
+
+Note the leading tilda (~), which makes these _local_ parameters. Also note that
+this call needs to take place _after_ the call to `init_node`.
+
 Here's the current file for reference:
 ```python
 #!/usr/bin/env python
@@ -705,11 +749,202 @@ if __name__ == "__main__":
     SnakeHeadingController()
 ```
 
-## Creating a Launch File
+Again, we could go ahead and test this script right now. However, we're going to
+set something up to make that an easier process in the next step.
 
+## Creating a Launch File
+Launching this program is somewhat involved. You need to start the ROS core in
+one terminal window, then you need to launch this node in another. Can you
+imagin how many terminal windows you would need for a large project? Thankfully,
+ROS has a system to let you launch multiple nodes at once. It even let's you do
+some fancy scripting to set parameters, launch nodes based off conditionals, and
+nest files through include tags.
+
+We need to create a new file inside the `launch` directory that we created
+earlier. Let's name it `snake_controller.launch`.
+
+Open this file up, and paste this in:
+```xml
+<launch>
+  <node type="snake_heading_controller" pkg="snake_controller" name="snake_heading_controller"/>
+</launch>
+```
+
+This is an XML description (similar to HTML) of the ROS network we're going to
+launch. You can see we put in the type of the node (the filename for Python
+nodes), the package, and a name. The name can be anything we want, but it made
+sense to repeat the name of the node type.
+
+As we get more nodes, we'll put them in here too so that we can launch them all
+at once.
+
+Let's test our code now. Since we've added new nodes since the last time we've
+built our package, we need to re-build our project. Run the following command
+from anywhere inside your `catkin_ws` directory.
+```bash
+catkin build
+```
+
+We also need to source the project. This let's the shell know what ROS programs
+are available to call. If you've added it to your bashrc (if you've followed the
+guide, you've done this) you can run the below command from anywhere:
+```bash
+source ~/.bashrc
+```
+You only need to do that in any terminal windows that are currently open. Any
+new ones will have that done automatically. You could also close and re-open
+them all instead of running that command if you really wanted ...
+
+If you haven't added it to your bashrc, or just want to know how to source a
+workspace manually, this is the command (from the `catkin_ws` directory):
+```bash
+source devel/setup.bash
+```
+
+Now, let's launch the code:
+```bash
+roslaunch snake_controller snake_controller.launch
+```
+
+This isn't super exciting because it isn't recieving any input and isn't
+connected to the snake game. We'll fix that shortly.
+
+## Extending the Launch File
+You could launch the snake game in another shell with this command:
+```bash
+roslaunch snakesim snakesim.launch
+```
+
+Or you could launch both of them at once by creating a launch file that includes
+both of them. Make a new launch file in the same directory as the last one
+called `snake.launch`. This will be our primary launch file to get the whole
+thing running.
+
+Put the following lines in:
+```xml
+<launch>
+  <include file="$(find snakesim)/launch/snakesim.launch"/>
+  <include file="$(find snake_controller)/launch/snake_controller.launch"/>
+</launch>
+```
+
+This file will call the `snakesim.launch` from that package, then call the
+`snake_controller.launch` file that we just wrote. We can run it with the
+below command:
+```bash
+roslaunch snake_controller snake.launch
+```
+
+You can also check that all the connections between the nodes are working by
+visualizing it with rqt_graph. In a new terminal (with display capabilities),
+run the following command.
+```bash
+rosrun rqt_graph rqt_graph
+```
+
+You should see a cool little diagram showing how your nodes are connected by
+various topics.
+
+## Giving the Heading Controller Input
+Right now, it still isn't super exciting to run our node. The heading controller
+isn't recieving any input so it isn't telling the snake to do anything. There
+are a few ways we can fix this.
+
+Let's look at a way to do it through the terminal, then we'll look at a way to
+do it through a GUI.
+
+You can manually publish ROS messages from the terminal using the `rostopic pub`
+command. To give the snake a heading, you can run the following:
+```bash
+rostopic pub /controller/heading std_msgs/Float64 "data: 0.0"
+```
+
+You can see we need to specify the topic, the type, and the data. This will tab
+complete, so that is cool. You can manually give the snake a few headings this
+way and make sure the controller works. 0 corresponds to the right and it
+increases counter-clockwise, measured in radians.
+
+If you want a GUI to send messages, we can use a program called `rqt_publisher`.
+
+Launch it with the following command on a terminal with display capabilites:
+```bash
+rosrun rqt_publisher rqt_publisher
+```
+
+You need to use a drop down to select the topic, then hit the plus to add it.
+Then you need to hit a drop down arrow to be able to access the `data` field.
+Once you have all that, hit the checkbox to start publishing. The controller
+should behave the same way regardless of where the data is coming from.
+
+## Further Launch File Notes
+This is a quick note about how to work with arguments and parameters. This is
+super useful for creating a robust system of modular launch files. We won't go
+super in depth, and it isn't needed for the tutorial. However, you might find it
+useful to know.
+
+Remember how we made our two constants ROS parameters? Let's say that we really
+want to be able to make our snake's linear velocity an argument that we can
+control by specifying a value when we run roslaunch. We want to be able to
+do this:
+```bash
+roslaunch snake_controller snake.launch linear_velocity:=5.0
+```
+
+The cool thing is that we can, and it isn't super difficult. First we need to
+modify the `snake_controller.launch`:
+```xml
+<launch>
+  <arg name="linear_velocity" default="2.0"/>
+  <node type="snake_heading_controller" pkg="snake_controller" name="snake_heading_controller">
+    <param name="linear_velocity" value="$(arg linear_velocity)"/>
+  </node>
+</launch>
+```
+Here, we've specified that we're expecting an argument called `linear_velocity`.
+If we don't have anything explicitly set, we'll use a default value of 2.0. When
+we start the `snake_heading_controller` node, we'll pass the value of our
+argument to the node as a parameter.
+
+Remember the distinction that arguments are for launch files, parameters are
+for nodes.
+
+If we try the above command, nothing different will happen? Why? Because we are
+calling `snake.launch`, not `snake_controller.launch`. We need to set up a basic
+pass through. Let's modify `snake.launch to do that now:
+```xml
+<launch>
+  <arg name="linear_velocity" default="2.0"/>
+
+  <include file="$(find snakesim)/launch/snakesim.launch"/>
+
+  <include file="$(find snake_controller)/launch/snake_controller.launch">
+    <arg name="linear_velocity" value="$(arg linear_velocity)"/>
+  </include>
+</launch>
+```
+
+Now our above command will work :)
+
+Note that you can have different default values at all the different levels. If
+you want, make them all different and experiment with the speed of the snake
+when you remove some of the new stuff that we just added.
+
+If you're curious about what other shenanigans you can achieve with launch
+files, the [ROS wiki](http://wiki.ros.org/roslaunch/XML) has a full guide to
+the syntax.
 
 ## Final Notes
-Full file for reference:
+Congratulations, you made it to the end! You just made your first ROS node to
+build a controller for the snake. This node is relatively simple, but hopefully
+you learned a lot about using ROS that will help you in creating the next two
+nodes. Those next two tutorials are much faster since we got all the basic
+groundwork taken care of in this one.
+
+Below you'll see the final file we developed, plus a breakdown of it in case if
+you forget what a specific section is doing. Feel free to experiment with making
+changes to this node, or move on to the next one.
+
+### Full File for Reference:
 ```python
 #!/usr/bin/env python
 """Node to control the heading of the snake.
@@ -770,3 +1005,107 @@ if __name__ == "__main__":
     SnakeHeadingController()
 ```
 
+### Full File Broken Down:
+```python
+#!/usr/bin/env python
+```
+This is our shebang. It tells the command line how to execute our program.
+
+```python
+"""Node to control the heading of the snake.
+
+License removed for brevity
+"""
+```
+This is the docstring for the file. It gives a quick description and also
+includes a license.
+
+```python
+# Python
+from math import copysign
+from angles import shortest_angular_distance
+
+# ROS
+import rospy
+from geometry_msgs.msg import Twist, PoseArray
+from std_msgs.msg import Float64
+from tf.transformations import euler_from_quaternion
+```
+These are our import statements. They let us pull functionality from other
+Python files. We've split them into two groups for visual purposes / convention.
+
+```python
+class SnakeHeadingController(object):
+    """Simple heading controller for the snake."""
+    def __init__(self):
+        rospy.init_node('snake_heading_controller')
+
+        self.heading_command = None
+        self.ANGULAR_VELOCITY = rospy.get_param('~angular_velocity', 6.28)
+        self.LINEAR_VELOCITY = rospy.get_param('~linear_velocity', 2.0)
+
+        # Publishers
+        self.twist_pub = rospy.Publisher('snake/cmd_vel', Twist, queue_size=1)
+
+        # Subscribers
+        rospy.Subscriber('snake/pose', PoseArray, self.pose_cb)
+        rospy.Subscriber('controller/heading', Float64, self.heading_cb)
+
+        rospy.spin()
+```
+This is the class definition for `SnakeHeadingController` and the `init` method.
+The `init` method is run when a new `SnakeHeadingController` is made. It
+initializes the node through ROS and gives it a name. The `heading_command`
+variable is initialized as `None` so that we can distinguish between a lack of a
+command and a command of 0. Two constants are created from ROS parameters, which
+can be set in launch files or on the commandline.
+
+The publishers and subscribers are created by specifying the topic and type. The
+publisher also specifies a queue size and the subscribers specify a callback,
+which is a function that gets called when a new message is received. A reference
+to the publisher is retained so that we can publish to it in the future.
+
+Lastly, we call `spin`. This command will block forever until the node is
+shutdown. While it is blocking, the node responds to input by running the
+callback methods for each new message it recieves.
+
+```python
+    def heading_cb(self, heading_msg):
+        """Callback for heading goal."""
+        self.heading_command = heading_msg.data
+
+```
+This is our callback for heading commands. It has a short docstring, and we
+simply save the data from the message so that we can retrieve it later.
+
+```python
+    def pose_cb(self, pose_msg):
+        """Callback for poses from the snake."""
+        if (self.heading_command is not None):
+            quat = (pose_msg.poses[0].orientation.x,
+                    pose_msg.poses[0].orientation.y,
+                    pose_msg.poses[0].orientation.z,
+                    pose_msg.poses[0].orientation.w)
+
+            __, __, heading = euler_from_quaternion(quat)
+            error = shortest_angular_distance(heading, self.heading_command)
+            angular_velocity_command = copysign(self.ANGULAR_VELOCITY, error)
+
+            twist_msg = Twist()
+            twist_msg.linear.x = self.LINEAR_VELOCITY
+            twist_msg.angular.z = angular_velocity_command
+            self.twist_pub.publish(twist_msg)
+```
+This is the callback for pose messages from the snake. We've given it a nice
+docstring and have a little check before running the main logic for the
+controller. The orientation quaternion is converted into a yaw angle, we
+calculate the error, then determine our control output. The control output is
+wrapped up into a ROS message then published.
+
+```python
+if __name__ == "__main__":
+    SnakeHeadingController()
+```
+This is the section of our code that gets called first when we start the
+program. We simply make a `SnakeheadingController` object, then let the `init`
+function take over.

@@ -44,28 +44,29 @@ class SnakePositionController(object):
     def __init__(self):
         rospy.init_node('snake_position_controller')
 
-        self.goal = None
+        self.position = None
 
         # Publishers
         self.heading_pub = rospy.Publisher('controller/heading', Float64, queue_size=1)
 
         # Subscribers
         rospy.Subscriber('snake/pose', PoseArray, self.snake_cb)
-        rospy.Subscriber('controller/goal', Point, self.goal_cb)
+        rospy.Subscriber('controller/position', Point, self.position_cb)
 
         rospy.spin()
 
-    def goal_cb(self, point_msg):
-        """Callback for goal."""
-        self.goal = (point_msg.x, point_msg.y)
+    def position_cb(self, point_msg):
+        """Callback for position."""
+        self.position = (point_msg.x, point_msg.y)
 
     def snake_cb(self, pose_msg):
         """Callback for poses from the snake."""
-        if self.goal is not None:
-            goal = self.goal
+        if self.position is not None:
             pose = (pose_msg.poses[0].position.x, pose_msg.poses[0].position.y)
 
-            heading = math.atan2(goal[1] - pose[1], goal[0] - pose[0])
+            # make a local copy to avoid threading issues
+            position = self.position
+            heading = math.atan2(position[1] - pose[1], position[0] - pose[0])
             self.heading_pub.publish(heading)
 
 if __name__ == "__main__":

@@ -39,7 +39,7 @@ if __name__ == "__main__":
     rospy.init_node('snake_goal_relay')
 
     # Publishers
-    goal_pub = rospy.Publisher('controller/goal', Point, queue_size=1)
+    goal_pub = rospy.Publisher('controller/position', Point, queue_size=1)
 
     # Subscribers
     rospy.Subscriber(

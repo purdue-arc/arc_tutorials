@@ -42,9 +42,9 @@ snake to reach a desired position, but it does not factor in the turning radius,
 self-collisions, or wall-collisions at all.
 
 #### Subscribed Topics
-`controller/goal` (geometry_msgs/Point)
+`controller/position` (geometry_msgs/Point)
 
-The desired goal position for the snake.
+The desired position for the snake.
 
 `snake/pose` (geometry_msgs/PoseArray)
 
@@ -53,7 +53,8 @@ The pose of the snake. This is used to determine the head position.
 #### Published Topics
 `controller/heading` (geometry_msgs/Float64)
 
-The required heading to face the goal at the snake's current position. This is given as positive rotation about the Z axis in radians.
+The required heading to face the desired posotion from the snake's current
+position. This is given as positive rotation about the Z axis in radians.
 
 #### Services
 None.
@@ -68,9 +69,9 @@ required due to the difference in topic types.
 The current goal location as reported by the game.
 
 #### Published Topics
-`controller/goal` (geometry_msgs/Point)
+`controller/position` (geometry_msgs/Point)
 
-The goal location data to be fed into the controller.
+The desired position data to be fed into the controller.
 
 #### Services
 None.
