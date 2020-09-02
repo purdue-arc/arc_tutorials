@@ -40,24 +40,24 @@ game. We will start by running the `snakesim` package to see what we will
 be controlling. Run the following commands to open our 'dockerized'
 environment:
 
-```
+```bash
 ./src/arc_tutorials/docker/docker-build.sh
 ```
 then
-```
+```bash
 ./src/arc_tutorials/docker/docker-run.sh
 ```
 
 You should now be running a shell within our ARC development container. To
 verify that your workspace is correct, run:
 
-```
+```bash
 ls catkin_ws
 ```
 If everything is correct, you should simply see a `src/` folder. Let's now
 move into our workspace by running:
 
-```
+```bash
 cd catkin_ws
 ```
 
@@ -65,13 +65,13 @@ Now we need to build our workspace, which will setup our environment
 to run packages. This will all be explained in the next section, so hang
 in there. We do this with the command:
 
-```
+```bash
 catkin build
 ```
 
 Now if we print our directory contents again:
 
-```
+```bash
 ls
 ```
 
@@ -81,7 +81,7 @@ also important for configuring our environment.
 Again this will be covered in the next section, so just run these
 commands and it will make sense soon.
 
-```
+```bash
 source devel/setup.bash
 ```
 
@@ -90,7 +90,7 @@ packages we have stored.
 
 Lets start by moving into our package directory:
 
-```
+```bash
 cd src/arc_tutorials
 ```
 
@@ -109,7 +109,7 @@ don't have to do it manually.
 
 To run the launch file:
 
-```
+```bash
 roslaunch snakesim snakesim.launch
 ```
 
@@ -140,7 +140,7 @@ example to see what we are building towards.
 
 Again we will use a launch file:
 
-```
+```bash
 roslaunch snake_tutorial snake.launch
 ```
 
