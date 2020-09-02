@@ -172,7 +172,9 @@ the Python extension below.
 After installing Remote WSL, you will need to reopen VS Code within your Ubuntu
 environment. You can do this by hitting `CTRL + SHIFT + P`, then typing:
 
-> Remote-WSL: New Window
+```
+Remote-WSL: New Window
+```
 
 Hit enter and it should bring up a new VS Code window running on Ubuntu. You
 can go ahead and close the old VS Code instance. Return to the extension menu,
