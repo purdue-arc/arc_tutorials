@@ -24,7 +24,7 @@ waypoint messages to a low level control node). The beauty of it is that all the
 nodes can be modular and developed independently if you have a well defined
 interface of messages.
 
-Another really excellent reason to use ROS is the 2000+ number of existing
+Another really excellent reason to use ROS is the 5000+ number of existing
 packages that can act as 'plug and play' into your existing network. If you have
 a new sensor you're looking to try, someone has probably already written a ROS
 driver for it. Tasks such as mapping, perception, and state estimation that many
