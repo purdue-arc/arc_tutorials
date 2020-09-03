@@ -96,8 +96,8 @@ cd snake_controller/
 ```
 Upon printing the directory contents, you can see have three items within
 our package:
-- CMakeLists.txt
-- package.xml
+- `CMakeLists.txt`
+- `package.xml`
 - `src/`
 
 In order to make things better set up for a purely Python ROS package, we're
