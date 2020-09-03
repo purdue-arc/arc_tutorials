@@ -8,6 +8,7 @@ Feedback control (also called closed-loop control) means that we are using
 sensor readings (in this case the output pose of the snake) in order to create
 our control signal that we send to the snake. As a block diagram, it may look
 like this:
+
 ![heading controller](images/heading-controller.png)
 
 This node is also going to handle the linear velocity command too. We're just
@@ -23,8 +24,8 @@ in the `nodes` directory to house our code. We'll call this file
 
 Note that it is general practice not to add a `.py` file extension to nodes.
 This is because the file name becomes the name of the node when building our
-package with catkin. Ex: `roslaunch snake_controller snake_heading_controller`
-is cleaner than `roslaunch snake_controller snake_heading_controller.py`.
+package with catkin. Ex: `rosrun snake_controller snake_heading_controller`
+is cleaner than `rosrun snake_controller snake_heading_controller.py`.
 
 Let's start the file by writing a shebang and docstring.
 ```python
