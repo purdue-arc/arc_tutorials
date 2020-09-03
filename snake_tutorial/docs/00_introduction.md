@@ -1,6 +1,6 @@
 # Snake Tutorial Introduction
 ## Tutorial Overview
-Before we dive into ROS, let's breakdown what we will be accomplishing.
+Before we dive into ROS, let's break down what we will be accomplishing.
 Our end goal is to automate a game of Snake. If you have never heard of
 Snake, then check out an example 
 [here](https://www.google.com/search?client=firefox-b-1-d&q=snake+game). 
