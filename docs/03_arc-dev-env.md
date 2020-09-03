@@ -215,7 +215,7 @@ To open the console, enter:
 CTRL + SHIFT + ~
 ```
 
-You can now bash commands as per usual. If there is a file or folder you 
+You can now run bash commands as per usual. If there is a file or folder you 
 want to edit in VS Code, run:
 
 ```
