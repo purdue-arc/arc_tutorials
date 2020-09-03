@@ -154,7 +154,7 @@ terminal:
 ```bash
 rosnode list
 ```
-You will see your node, `snake-heading-controller` in the list of running nodes!
+You will see your node, `snake_heading_controller` in the list of running nodes!
 
 Feel free to try changing the name of the node or removing the `spin` command
 to see what it does.
@@ -174,7 +174,7 @@ The `Subscriber` command tells ROS to subscribe to a topic (argument 1), of a
 specific type (argument 2), and call a function (argument 3) when it recieves a
 new message. We need to define those callback functions now.
 
-Put these lines after `init`:
+Put these lines after `__init__`:
 ```python
     def heading_cb(self, heading_msg):
         """Callback for heading goal."""
@@ -189,7 +189,7 @@ so that we can hold off on the implementation for them. If you remember our
 block diagram from earlier, we are subscribing to the desired heading and true
 heading respectively.
 
-The callbacks have one argument each (ignoring self), which is the contents of
+The callbacks have one argument each (ignoring `self`), which is the contents of
 the ROS message recieved. We'll talk more about how to interpret those shortly.
 
 Lastly, we need to tell Python where to find these message types. Put this right
@@ -276,8 +276,8 @@ Another difference is that we are keeping a reference to the `Publisher` object.
 This is important so that we can publish messages via that reference in the
 future.
 
-Again, we need to tell Python where to find this new message type. Replace one
-of the exising `import` commands with the following:
+Again, we need to tell Python where to find this new message type. Replace the
+existing `PoseArray` import command with the following:
 ```python
 from geometry_msgs.msg import Twist, PoseArray
 ```
@@ -482,7 +482,7 @@ From this pseudocode, we know a few things:
 Let's handle these in order:
 
 First, we'll create an `ANGULAR_VELOCITY_MAG` variable. Put this line in the
-`init` function after `init_node`:
+`__init__` method after `init_node`:
 ```python
 self.ANGULAR_VELOCITY_MAG = 2.0
 ```
@@ -504,7 +504,7 @@ this line with your imports:
 from angles import shortest_angular_distance
 ```
 
-In order to handle the sign of the error, we'll use the `math module. Put this
+In order to handle the sign of the error, we'll use the `math` module. Put this
 line with your imports:
 ```python
 from math import copysign
@@ -587,7 +587,7 @@ One of the last things we need is actually publishing the value.
 
 Like we stated earlier, this node is going to use a constant value for the
 linear velocity command for the snake. Let's define that constant now in the
-`init` function:
+`__init__` function:
 ```python
 self.LINEAR_VELOCITY = 2.0
 ```
@@ -687,7 +687,7 @@ server. We'll talk about how to set those through ROS in just a minute. The name
 of the parameter is the first argument, and the default value is the second.
 
 Note the leading tilda (~), which makes these _local_ parameters. Also note that
-this call needs to take place _after_ the call to `init_node`.
+this needs to take place _after_ the call to `init_node`.
 
 Here's the current file for reference:
 ```python
@@ -911,7 +911,7 @@ for nodes.
 
 If we try the above command, nothing different will happen? Why? Because we are
 calling `snake.launch`, not `snake_controller.launch`. We need to set up a basic
-pass through. Let's modify `snake.launch to do that now:
+pass through. Let's modify `snake.launch` to do that now:
 ```xml
 <launch>
   <arg name="linear_velocity" default="2.0"/>
@@ -1018,8 +1018,8 @@ This is our shebang. It tells the command line how to execute our program.
 License removed for brevity
 """
 ```
-This is the docstring for the file. It gives a quick description and also
-includes a license.
+This is the docstring for the file. It gives a quick description and may also
+include a license.
 
 ```python
 # Python
@@ -1108,5 +1108,5 @@ if __name__ == "__main__":
     SnakeHeadingController()
 ```
 This is the section of our code that gets called first when we start the
-program. We simply make a `SnakeheadingController` object, then let the `init`
-function take over.
+program. We simply make a `SnakeheadingController` object, then let the
+`__init__` method take over.
