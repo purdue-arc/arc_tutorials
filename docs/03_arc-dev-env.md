@@ -10,7 +10,7 @@ container.
 To build the image, you need to give step-by-step commands to Docker. This is
 typically done through the use of a 'Dockerfile.' You will therefore need the
 Dockerfile associated with the ARC development environment. If you have not
-already clone this repository to your computer, do so now.
+already cloned this repository to your computer, do so now.
 
 ### Cloning the repository
 If using Windows, you should clone the repository to the WSL2 filesystem. The
