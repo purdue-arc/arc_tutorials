@@ -49,6 +49,9 @@ setup file by running:
 source devel/setup.bash
 ```
 
+There is a way to do that automatically, which is covered at the end of this
+document.
+
 Here is a simplified file structure for Python ROS packages (C++ is different):
 ```
 example_package/
@@ -503,3 +506,47 @@ snake_controller/
 │
 └───package.xml
 ```
+
+## Sourcing the Workspace Automatically
+Remember how we said that you need to source the workspace for every new
+terminal window that you open? The command looks like this:
+```bash
+source devel/setup.bash
+```
+
+Thankfully, there is a way to make that happen automatically! If you set up WSL2
+by following our guide, you may remember modifying a script called the `bashrc`.
+This is a script that is run every time you open a new terminal. If we put that
+source command at the end of it, then we don't need to worry about running it
+manually for every new terminal we open. You can add that command by running
+the following in your shell:
+```bash
+echo 'source ~/catkin_ws/devel/setup.bash' >> ~/.bashrc
+```
+
+We can now run that to make it take effect in our current terminal:
+```bash
+source ~/.bashrc
+```
+
+However, if you are using the ARC development environment, this edit was done
+inside a volatile Docker container. This means that as soon as you exit the
+container, this edit will be lost permenantly. We made a note about committing
+changes in Docker, and this is a good time to do that.
+
+This is the command, which needs to be run on your _host_ machine. You'll want
+to open up a new terminal, rather than close the one you are working in.
+```bash
+docker commit arc-dev arc-dev
+```
+
+Essentially, we've just taken the current running version of our Docker
+container, with our edits, and saved it as the Docker image that we will run
+everytime we restart it. You can safely exit the container now, and every time
+you restart it through the `docker-run.sh`, it will source our workspace
+automatically in every new terminal.
+
+## Final Notes
+Congratulations, you just finished creating a ROS package! In the following
+documents, we'll build three nodes that will allow your new package to control
+the snake game that you ran earlier.

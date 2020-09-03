@@ -43,6 +43,11 @@ environment:
 ./src/arc_tutorials/docker/docker-run.sh
 ```
 
+Pretty much all of the following tutorial assumes that you are working inside
+this docker environment. Unless if explicitly said otherwise, assume that
+terminal commands are to be run in the Docker container. This is true for all of
+the following documents in this tutorial series.
+
 You should now be running a shell within our ARC development container. To
 verify that your workspace is correct, run:
 ```bash
@@ -135,3 +140,10 @@ The snake game should appear again, but this time it should be
 autonomously playing the game. If you watch it long enough, eventually
 it will fail because its logic is very simple. By the end of this
 tutorial, we will have built this same controller from the ground up.
+
+
+## Final Notes
+Congratulations, you just finished getting familiarized with the snake game
+and the controller! You'll develop this same controller by following this
+tutorial series. In the next step, you'll create a package to hold your
+controller, then you'll write some nodes in order to control the snake.
