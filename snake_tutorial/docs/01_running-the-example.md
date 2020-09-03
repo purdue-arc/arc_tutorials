@@ -39,24 +39,17 @@ Now let's try to apply some of the concepts we've learned to the snake
 game. We will start by running the `snakesim` package to see what we will
 be controlling. Run the following commands to open our 'dockerized'
 environment:
-
-```bash
-./src/arc_tutorials/docker/docker-build.sh
-```
-then
 ```bash
 ./src/arc_tutorials/docker/docker-run.sh
 ```
 
 You should now be running a shell within our ARC development container. To
 verify that your workspace is correct, run:
-
 ```bash
 ls catkin_ws
 ```
 If everything is correct, you should simply see a `src/` folder. Let's now
 move into our workspace by running:
-
 ```bash
 cd catkin_ws
 ```
@@ -64,13 +57,11 @@ cd catkin_ws
 Now we need to build our workspace, which will setup our environment
 to run packages. This will all be explained in the next section, so hang
 in there. We do this with the command:
-
 ```bash
 catkin build
 ```
 
 Now if we print our directory contents again:
-
 ```bash
 ls
 ```
@@ -80,7 +71,6 @@ also important for configuring our environment.
 
 Again this will be covered in the next section, so just run these
 commands and it will make sense soon.
-
 ```bash
 source devel/setup.bash
 ```
@@ -89,7 +79,6 @@ With our workspace and environment fully configured, we can now run the
 packages we have stored.
 
 Lets start by moving into our package directory:
-
 ```bash
 cd src/arc_tutorials
 ```
@@ -108,7 +97,6 @@ the moment, but just know that it starts up ROS nodes in a set way so you
 don't have to do it manually.
 
 To run the launch file:
-
 ```bash
 roslaunch snakesim snakesim.launch
 ```
@@ -139,12 +127,11 @@ to exit the program. Next we are going to run the snake controller
 example to see what we are building towards.
 
 Again we will use a launch file:
-
 ```bash
 roslaunch snake_tutorial snake.launch
 ```
 
 The snake game should appear again, but this time it should be
 autonomously playing the game. If you watch it long enough, eventually
-it will fail because it's logic is very simple. By the end of this
+it will fail because its logic is very simple. By the end of this
 tutorial, we will have built this same controller from the ground up.
