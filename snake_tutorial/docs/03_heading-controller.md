@@ -46,7 +46,7 @@ read more about docstrings [here](https://www.python.org/dev/peps/pep-0257/#what
 and more about PEP 8 [here](https://www.python.org/dev/peps/pep-0008/#introduction).
 
 Now, let's move on and start laying the foundation for our file by writing our
-main function and creating a class to hold our logic.
+`__main__` check and creating a class to hold our logic.
 ```python
 class SnakeHeadingController(object):
     """Simple heading controller for the snake."""
@@ -69,16 +69,19 @@ Python keyword meaning "do nothing." It is a handy placeholder because leaving
 the body of that function blank would result in an error.
 
 In the second part of the program, we've told the program what to do if it is
-executed. This piece gets called when we tell ROS to launch the node. In this
-case, it is creating an instance of our `SnakeHeadingController` class and
-doing nothing else.
+executed. The variable `__name__` is set to `__main__` if this file is the main
+one being executed. If this file is included in another through `import`, then
+the following statements do not get run. We will call this the "`__main__`
+check" moving forward. This is the first part of the program that will be
+executing commands once ROS starts the node. In this case, it is creating an
+instance of our `SnakeHeadingController` class and doing nothing else.
 
 If you'd like, you can run this piece of code from your terminal with the
 command:
 ```bash
 ./snake_heading_controller
 ```
-(this command works because of the shebang :) )
+> this command works because of the shebang :)
 
 A keen observer will notice that nothing happened, and our program ended
 immediately. This is because our code doesn't do anything yet. We call the

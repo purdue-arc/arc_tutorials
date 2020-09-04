@@ -12,7 +12,8 @@ that in the next document.
 ## Creating the Program
 This is going to start like the last program in creating the file, shebang, and
 docstring. However, things are going to be different once we start writing
-code. Go ahead and do all the above, and write an empty `main` function.
+code. Go ahead and do all the above, and write `pass` after the `__main__`
+check.
 
 You should have something like this:
 ```python
@@ -32,7 +33,7 @@ like commanded headings or positions. We'll also only have a single subscriber,
 where we can put all of the logic. The logic won't even be anything spectacular.
 It will simply be publishing the data from a PointStamped message as a Point
 type. For something really small like this, it can be appropriate to skip over
-creating a class, and put everything in `main`.
+creating a class, and put everything after the `__main__` check.
 
 Look at the below program to see for yourself:
 ```python
@@ -65,8 +66,8 @@ if __name__ == "__main__":
 We've used something called a lambda in order to put the logic right into the
 call to create a subscriber. Rather than include the name of a function, we used
 the `lambda` keyword, which lets us put the arguments separated by commas, then
-the logic after a semicolon (:). Note that you can also pass in extra arguments
-and even assign them using an equal sign (=) in the argument list.
+the logic after a semicolon. Note that you can also pass in extra arguments and
+even assign them using an equal sign in the argument list.
 
 You can learn more about lambdas [online](https://www.w3schools.com/python/python_lambda.asp).
 

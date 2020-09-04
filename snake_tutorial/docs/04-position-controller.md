@@ -14,7 +14,7 @@ This will be just like the last program. Let's call it
 
 Again, we'll start the program by writing a shebang and docstring. The basic
 groundwork for the file will be really similar to last time too. See if you can
-write out the `main` function, declare a class, and prototype all the methods
+write out the `__main__` check, declare a class, and prototype all the methods
 our class will need by writing a docstring then using `pass`.
 
 You should have gotten something like this:

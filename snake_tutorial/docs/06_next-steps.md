@@ -111,7 +111,7 @@ Another bad thing is to use a message and use the fields for different purposes
 than intended. For example, ROS has a `Quaternion` message, but no standard
 `EulerAngle` message. If you took a `Quaternion` message and made the `x`,`y`,
 and `z` field correspond to roll, pitch, and yaw, that would be really confusing
-for future users. It is also generally advisable to use Quaternions over Euler
+for future users. It is also generally advisable to use quaternions over Euler
 angles since there is no confusion about how to interpret them.
 
 ROS has some standard message types that you can look at online:
