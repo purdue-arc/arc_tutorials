@@ -51,8 +51,8 @@ pick out a good message type for the subscribers and publishers. Remember that
 the message types need to match if we're recieving data from or sending data to
 nodes that have already been written.
 
-Once you've got a handle on that, go ahead and write the `init` method. You can
-also update the argument names in the callbacks to be more explicit. Don't
+Once you've got a handle on that, go ahead and write the `__init__` method. You 
+can also update the argument names in the callbacks to be more explicit. Don't
 forget any imports too!
 
 You should have gotten something like this:
@@ -94,12 +94,13 @@ if __name__ == "__main__":
     SnakePositionController()
 ```
 
-You can see the Point message was selected for the `controller/position` topic.
-Other notable options were Pose, Pose2D, and Stamped variants of the prior
-mentioned messages. Since our goal is just a position and doesn't need any
-orientation data, we won't use a Pose type. Additionally, Pose2D is depreciated
-and shouldn't be used anyways. We could have Stamped the message, but a
-timestamp isn't needed. We'll always just chase the latest position command.
+You can see the `Point` message was selected for the `controller/position`
+topic. Other notable options were `Pose`, `Pose2D`, and time-stamped variants of
+those messages (`PointStamped` and `PoseStamped`, there is no `Pose2DStamped`).
+Since our goal is just a position and doesn't need any orientation data, we
+won't use a Pose type. Additionally, Pose2D is depreciated and shouldn't be used
+anyways. We could have time-stamped the message, but a timestamp isn't needed.
+We'll always just chase the latest position command.
 
 There are many other messages worth looking at on the [ROS wiki](http://wiki.ros.org/common_msgs)
 if you have a specific need in the future.
@@ -108,9 +109,9 @@ if you have a specific need in the future.
 This controller can be implemented much like the last one. Create a variable to
 track the desired position, then modify the positon callback in order to set it.
 
-Put the main logic in the snake callback. You'll need a quick check, then
-somehow you'll need to calculate the heading command. This can simply be the
-heading from the point you are currently at, to the point you want to be at.
+Try two write out the logic in the snake callback. You'll need a quick check,
+then somehow you'll need to calculate the heading command. This can simply be
+the heading from the point you are currently at, to the point you want to be at.
 Once you have that, publish it as a ROS message. Don't forget any imports!
 
 If you need a hint, the `atan2` function will help you out.
@@ -171,27 +172,37 @@ two lines:
             position = self.position
 ```
 
-What is happening here is that in rospy, the callbacks all happen in different
-threads. Essentially, you're not guaranteed that a callback will run all the
-way through before a different callback will get started. In these cases,
-bytecode commands from the two can get sort of interleaved.
+In rospy, the callbacks all happen in different threads. A thread is a separate,
+simultaneously running, task. In Python, they aren't actually simultaneous, but
+instead the computer will jump back and forth between different threads at a
+high rate. A bytecode command, which is the smallest chunk that Python commands
+can be split into can get interleaved between the two threads from it jumping
+back and forth.
 
-You can also have issues if the two lines referenced earlier where removed,
-and the following line referenced `self.position`. In a potential case, the call
-to `atan2` will be started and the program will run a few commands in order to
-calculate the first argument. The, the execution could go to the first callback
-which changes the `self.position` tuple to a completely different number.
-Execution goes back to the `atan2` call, and the second argument is calculated
-with the new point. You'd then be calculating the heading to a point with the
-original X value and a new Y value!
+Essentially, you're not guaranteed that a callback will run all the way through
+before a different callback will get started. If we were to remove the two lines
+that were referenced earlier, it is possible that the call to `atan2` will be
+started and the program will run a few bytecode commands in order to calculate
+the value of the first argument. Then, the execution could go to a different
+thread, where the first callback is being run. This could changes the
+`self.position` tuple to a completely different number while the earlier thread
+calculating the `atan2` is 'paused'. Execution jumps back to the earlier thread
+and keeps working on the `atan2` call. The second argument is now calculated
+with the new point. When `atan2` is actually called, it would receive the Y
+value from the first point, and the X value from the second. It would then be
+calculating the heading to a location that isn't either of the two points we
+wanted it to go to!
 
-For this specific case, it wouldn't be a major issue since it can't lead to a
-program crash (as far as I know ...). The second callback would also be running
-at a much higher rate than the first callback gets new data, so any weirdness
+For this specific case, it wouldn't be a critical issue since it can't lead to a
+program crash (as far as I know ...). The pose callback would also be running
+at a much higher rate than the position callback gets new data, so any weirdness
 would be quickly fixed in the next iteration.
 
 Regardless of how big an issue it could potentially be, it is still good to
-write threadsafe code. This is discussed further in **06_next-steps**.
+write threadsafe code. This is discussed further in **06_next-steps**, along
+with how making a local copy can resolves that issue. Making a local copy will
+not always resolve the issue, but it does for this specific case. It also
+discusses another technique to write threadsafe code using `Locks`.
 
 ## Updating Launch Files and Testing
 Updating the launch file is relatively simple. Put this line in
