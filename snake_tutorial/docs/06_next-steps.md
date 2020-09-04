@@ -7,7 +7,7 @@ accomplishment because learning to use ROS is no easy feat.
 In this document, we'll present some ideas on how you could improve upon this
 controller in order to expand on your ROS knowledge. We'll also give you some
 tips and insight into additional topics you may encounter while working on your
-own improvments.
+improvements.
 
 ## Ideas for Improvement
 Feel free to use some of these ideas in the list, or go off and do your own
@@ -21,7 +21,7 @@ snake if it is detecting a collision.
 
 You could also remove the goal relay completely and design your own waypoint
 controller that uses an graph based planning algorithm. For example, grassfire,
-Dijkstra, or A star algorithms could all work.
+Dijkstra, or A* (pronouced "A star") algorithms could all work.
 
 If you want to get really fancy, you could consider the fact that the snake is
 going to move as you execute the motion plan, so it may be acceptible to
@@ -39,8 +39,9 @@ and position controller that re-routes the snake to a safe path. You could
 also remove it completely and build it right into a fancier waypoint controller.
 
 This could be built in addition to the self avoidance system using some sort of
-planning algorithm that looks past reaching the next goal. For example RRT could
-be used to find a safe path to the goal and an arbitray secondary location.
+planning algorithm that looks past reaching the next goal. For example Rapidly
+Exploring Random Trees (RRT) could be used to find a safe path to the goal and
+an arbitray secondary location nearby.
 
 ### Machine Learning
 If you have experience with machine learning, you can probably apply it to this
@@ -96,7 +97,7 @@ For Python, follow the [PEP 8 guidelines](https://www.python.org/dev/peps/pep-00
 - classes: `PascalCase`
 - variables: `snake_case`
 - "private" variables: `_snake_case_with_leading_underscore`
-- "constant" variables: `CAPITALIZED`
+- "constant" variables: `CAPITALIZED_WITH_UNDERSCORES`
 - functions: `snake_case`
 - "private" functions: `_snake_case_with_leading_underscore`
 
@@ -105,7 +106,7 @@ Generally, you want to use a ROS message type that is intended for the
 application you have in mind. For example, the `Vector3` message and the `Point`
 message both have three fields, `x`, `y`, and `z`. However, `Vector3` is
 designed to represent vectors in 3D space, while `Point` is designed to
-represent a point in 3D space.
+represent points in 3D space.
 
 Another bad thing is to use a message and use the fields for different purposes
 than intended. For example, ROS has a `Quaternion` message, but no standard
@@ -170,8 +171,10 @@ def callback_two(self, msg):
     self.lock.release()
 ```
 
-Locks are provided through the `threading` library, and you can read more about
-them [online](https://docs.python.org/2/library/threading.html#lock-objects).
+This works because one callback can't acquire the lock until the other has
+released it. It is a blocking call by default. Locks are provided through the
+`threading` library, and you can read more about them
+[online](https://docs.python.org/2/library/threading.html#lock-objects).
 
 #### Atomic Operations
 This is a more advanced concept, but it can make things a little bit simpler if
@@ -200,24 +203,36 @@ There are going to be many times where ROS wants to make you slam your head into
 Luckily there are tools to reduce that frustration and help spot issues.
 
 This is a short list of the many options avaliable:
+
 - [rqt_graph](http://wiki.ros.org/rqt_graph): This ROS package allows users to 
 visualize the ROS computation graph. In other words, you can see what nodes 
 are active as well as
 how nodes are communicating. Here is an example of a graph:
 ![rqt graph example](images/rqt-example.png)
-- [roswtf](http://wiki.ros.org/roswtf): This ROS package is a general
-debugging tool that finds issues by searching your workspace. Additionally
-it has a funny name.
+
+- [roswtf](http://wiki.ros.org/roswtf): This ROS package is an automated
+debugging tool that finds issues by searching your workspace and graph. It can
+find things like improperly set up packages and nodes with unconnected topics.
+Additionally it has a fun name.
+
 - [rostopic](http://wiki.ros.org/rostopic): This command-line tool can be used 
-in debugging nodes. The two commands you might find most useful are
-`echo` and `pub`, which help in manually receiving and sending messages. This
-is espcially helpful for testing or when running nodes independently.
+in debugging nodes by the messages sent on connected topics. The main commands
+you might find most useful are `list`, `echo` and `pub`. `list` will list all
+active topics on the ROS graph. `echo` will let you monitor a topic live on the
+commandline. `pub` will let you send messages via the command line. This tool is
+espcially helpful for testing or when running nodes independently.
+
 - [rosnode](http://wiki.ros.org/rosnode): This is another useful command-line
-tool for debugging nodes. You can use `info` to print out various information 
-about a given node.
+tool for debugging nodes. You can use `list` to see all active nodes, then
+`info` to print out various information about a given node.
+
 - [Python Specific Debugger (PDB)](https://docs.python.org/3/library/pdb.html):
-This is a tool built to help debug python applications. It was used heavily in
-making the `snakesim` package.
+This is a tool built to help debug python applications. It has nothing to do
+with ROS. It has a bit of a learning curve, but it was used heavily in making
+the `snakesim` package. It may be worth using if you think you have issues
+inside of a node that you can't debug by looking at ROS messages going in and
+out. It will allow you to step through your code using breakpoints, and monitor
+the value of variables as you do so.
 
 ## Additional Resources and Getting Help
 If you're part of the Autonomous Robotics Club of Purdue, you can post questions
@@ -243,6 +258,6 @@ tutorial to add to this package, lets us know.
 
 If you're outside of the club and found this useful, please let us know. You can
 give the repo some stars on [GitHub](https://github.com/purdue-arc/arc_tutorials).
-You can also create Issues for any problems you found, or open up a PR if you
-have a fix. If you want to get in contact with the maintainer, send us an email
-through [autonomy@purdue.edu](mailto:autonomy@purdue.edu).
+You can also create GitHub Issues for any problems you found, or open up a PR if
+you have a fix. If you want to get in contact with the maintainer, send us an
+email through [autonomy@purdue.edu](mailto:autonomy@purdue.edu).

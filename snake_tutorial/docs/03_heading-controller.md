@@ -689,8 +689,9 @@ Now, we are using `rospy` in order to get these parameters from a parameter
 server. We'll talk about how to set those through ROS in just a minute. The name
 of the parameter is the first argument, and the default value is the second.
 
-Note the leading tilda (~), which makes these _local_ parameters. Also note that
-this needs to take place _after_ the call to `init_node`.
+Note the leading tilda, which makes these _local_ parameters. In general, you
+will always want to use local parameters. Also note that this needs to take
+place _after_ the call to `init_node`.
 
 Here's the current file for reference:
 ```python
