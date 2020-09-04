@@ -34,7 +34,6 @@ until 5 minutes and 53 seconds.
   walkthrough we will continue to strengthen our understanding.
 
 ## Snake Example
-
 Now let's try to apply some of the concepts we've learned to the snake
 game. We will start by running the `snakesim` package to see what we will
 be controlling. Run the following commands to open our 'dockerized'
@@ -115,10 +114,11 @@ will be replacing). Here's what they look like:
 > If you get an error message saying `snakesim` is not a package, then 
 you need run: `source devel/setup.bash` in the `catkin_ws/` directory.
 
-> If you get an error message about failing to display, it's likely   because X-forwarding is incorrectly setup. Return to 
- [setup tutorial #3](../../docs/03_arc-dev-env.md) for more detail.
+> If you get an error message about failing to display, it's likely because X 
+forwarding is incorrectly setup. Return to
+[setup tutorial #3](../../docs/03_arc-dev-env.md) for more detail.
 
-To control the snake, you can either move it with WASD keys or
+To control the snake, you can either move it with WASD and shift keys or
 manually adjust the speed with the scroll bars.
 Play around with it and see how far you can get.
 
@@ -140,7 +140,6 @@ The snake game should appear again, but this time it should be
 autonomously playing the game. If you watch it long enough, eventually
 it will fail because its logic is very simple. By the end of this
 tutorial, we will have built this same controller from the ground up.
-
 
 ## Final Notes
 Congratulations, you just finished getting familiarized with the snake game

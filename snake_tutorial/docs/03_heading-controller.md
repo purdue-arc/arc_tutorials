@@ -112,7 +112,7 @@ import rospy
 ```
 An import command lets you pull in functionality from other Python files. This
 is super useful to be able to re-use code and write small, modular files. If you
-look at the source of the snakesim package, you will see it is full of imports.
+look at the source of the `snakesim` package, you will see it is full of imports.
 
 Here is our current file for reference:
 ```python
@@ -371,10 +371,10 @@ heading_command = heading_msg.data
 ```
 
 Let's look at the pose callback (`pose_cb`) now. You can see that it contains an
-array of `Poses`. From the `README.md` file included in the snakesim package, we
-know that this is an array with the pose of each element of the snake starting
-at the head. We are only interested in the heading of the first segment, which
-corresponds to the yaw of the pose at index 0.
+array of `Poses`. From the `README.md` file included in the `snakesim` package,
+we know that this is an array with the pose of each element of the snake
+starting at the head. We are only interested in the heading of the first
+segment, which corresponds to the yaw of the pose at index 0.
 
 We know we'll be looking at something like this:
 ```python
