@@ -11,6 +11,7 @@ be the required heading to reach that positition.
 ## Creating the Program
 This will be just like the last program. Let's call it
 `snake_position_controller` and put it in the `nodes` folder like last time.
+Make sure to make it executable!
 
 Again, we'll start the program by writing a shebang and docstring. The basic
 groundwork for the file will be really similar to last time too. See if you can
@@ -45,13 +46,13 @@ if __name__ == "__main__":
 ## ROS Setup
 This section will also be very similar to last time. We're going to initilize
 the node, create our subscribers, and create our publishers. Take a look on the
-ROS wiki, at both the [std_msgs](http://wiki.ros.org/std_msgs) and 
+ROS wiki, at both the [std_msgs](http://wiki.ros.org/std_msgs) and
 [geometry_msgs](http://wiki.ros.org/geometry_msgs) packages and see if you can
 pick out a good message type for the subscribers and publishers. Remember that
 the message types need to match if we're recieving data from or sending data to
 nodes that have already been written.
 
-Once you've got a handle on that, go ahead and write the `__init__` method. You 
+Once you've got a handle on that, go ahead and write the `__init__` method. You
 can also update the argument names in the callbacks to be more explicit. Don't
 forget any imports too!
 
