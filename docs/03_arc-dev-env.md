@@ -40,6 +40,10 @@ sudo apt install -y git
 
 Back to building the image.
 
+> Note: if you are running this on a Linux machine, and your regular user is
+root, you will need to update the docker-build.sh script. Ask for assistance
+with that via Slack. In the future, this issue will be resolved automatically.
+
 Navigate to the `docker` directory and run the `docker-build.sh` script.
 ```bash
 cd arc_tutorials/docker
