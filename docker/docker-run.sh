@@ -8,7 +8,8 @@ docker run --rm -it \
     -e LIBGL_ALWAYS_INDIRECT \
     -v $XAUTH:/home/$USER/.Xauthority \
     -v $WS_DIR:/home/$USER/catkin_ws \
-    --hostname arc-dev \
+    --net=host \
+    --privileged \
     --name arc-dev \
     arc-dev \
     /bin/bash
