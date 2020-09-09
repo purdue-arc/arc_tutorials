@@ -10,10 +10,10 @@ this controller by fixing these problems. We'll give you a few more notes on
 that in the next document.
 
 ## Creating the Program
-This is going to start like the last program in creating the file, shebang, and
-docstring. However, things are going to be different once we start writing
-code. Go ahead and do all the above, and write `pass` after the `__main__`
-check.
+This is going to start like the last program in creating the file and making it
+executable, then adding the shebang and docstring. However, things are going to
+be different once we start writing code. Go ahead and do all the above, and
+write `pass` after the `__main__` check.
 
 You should have something like this:
 ```python

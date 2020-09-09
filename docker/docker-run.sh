@@ -8,6 +8,7 @@ docker run --rm -it \
     -e LIBGL_ALWAYS_INDIRECT \
     -v $XAUTH:/home/$USER/.Xauthority \
     -v $WS_DIR:/home/$USER/catkin_ws \
+    -v /tmp/.X11-unix:/tmp/.X11-unix \
     --hostname arc-dev \
     --name arc-dev \
     arc-dev \

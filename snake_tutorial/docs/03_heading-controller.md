@@ -20,12 +20,18 @@ Let's go ahead and implement this controller in Python now.
 We need to start by creating a new file. In the last tutorial, we were left with
 the proper directory structure to start writing code. We need to make a new file
 in the `nodes` directory to house our code. We'll call this file
-`snake_heading_controller`. 
+`snake_heading_controller`.
 
 Note that it is general practice not to add a `.py` file extension to nodes.
 This is because the file name becomes the name of the node when building our
 package with catkin. Ex: `rosrun snake_controller snake_heading_controller`
 is cleaner than `rosrun snake_controller snake_heading_controller.py`.
+
+Next, we need to make this file an executable:
+```bash
+chmod +x snake_heading_controller
+```
+You will need to do this for every node you create.
 
 Let's start the file by writing a shebang and docstring.
 ```python
@@ -466,7 +472,7 @@ In order to keep things simple, we're going to implement what is called a
 Essentially, it will output a fixed magnitude, positive or negative command
 depending on the sign of the error. If we are too far left, it will shoot us
 right. If we are too far right, it will shoot us left. If we wanted to be
-fancier, we could look at something like a PID controller, but this will be 
+fancier, we could look at something like a PID controller, but this will be
 eaiser to implement and work just fine for our puproses.
 
 On a basic level, our logic is going to look something like this:
