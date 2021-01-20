@@ -1,11 +1,12 @@
 # Introduction
 This set of documents will guide you through setting up your computer with the
-ARC development environment. This environment is created and run through Docker,
-which is a lightweight virtual machine. It has very little overhead and greatly
-simplifies the set up process for new users.
+ARC development environment. This environment is created and run through
+Docker, which is a lightweight virtual machine. It has very little overhead and
+greatly simplifies the set up process for new users.
 
 At the end of this guide, you will have the environment set up on your machine
-and ready for use.
+and ready for use. Additionally we have included information aimed at teaching
+you the basics of how to use these tools.
 
 ## Development Environment Explanation
 The ARC development environment is an Ubuntu 18.04 instance with ROS Melodic
@@ -19,10 +20,10 @@ ROS stands for Robot Operating System. It is an industry standard tool for
 creating autonomous robots. Essentially, it is a framework to create a mesh of
 nodes that work together to control your robot. It has an API for both C++
 and Python. Through it, you have a common language to define messages that
-are sent from one node to another (for example a path planning node can send
-waypoint messages to a low level control node). The beauty of it is that all the
-nodes can be modular and developed independently if you have a well defined
-interface of messages.
+are sent from one node to another (for example a camera node can send
+information to an arm node about where an object is). The beauty of it is that
+all the nodes can be modular and developed independently if you have a well
+defined interface of messages.
 
 Another really excellent reason to use ROS is the 5000+ number of existing
 packages that can act as 'plug and play' into your existing network. If you have
