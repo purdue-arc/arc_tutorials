@@ -766,7 +766,7 @@ set something up to make that an easier process in the next step.
 ## Creating a Launch File
 Launching this program is somewhat involved. You need to start the ROS core in
 one terminal window, then you need to launch this node in another. Can you
-imagin how many terminal windows you would need for a large project? Thankfully,
+imagine how many terminal windows you would need for a large project? Thankfully,
 ROS has a system to let you launch multiple nodes at once. It even let's you do
 some fancy scripting to set parameters, launch nodes based off conditionals, and
 nest files through include tags.
