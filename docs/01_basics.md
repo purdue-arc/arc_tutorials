@@ -51,22 +51,37 @@ be sure to use the internet to your advantage.
 
 ### Current Working Directory
 
-When executing commands on Bash, the result of those actions are
+When executing commands on Bash, the result of those commands are
 impacted by where you execute them within your file system. The 'where' is
-often described as your current working directory, the folder which you are
-executing commands within. At any point in time, you can find your working
-directory by running:
+often described as your current working directory, the directory (or folder)
+which you are executing commands within. At any point in time, you can find
+your current working directory by running:
 
 ```bash
 pwd
 ```
 
-Following the execution of that command, the terminal will **P**rint the path of the **W**orking **D**irectory. Which is why it is apporpriately named: 'pwd'.
+Following the execution of that command, the terminal will **P**rint the path of the **W**orking **D**irectory. Which is why it is appropriately named: 'pwd'.
 
 Shells often have default working directories when you open a new terminal. For Bash,
 this is the home directory.
 
-### Changing Directories
+### Making New Directories
+
+Directories can be created with:
+
+```bash
+mkdir <directory>
+```
+
+For future commands, we will use the following folder as an example:
+
+```bash
+mkdir MyCode
+```
+
+
+### Changing Current Working Directories
 
 What if the files we want to manipulate aren't in our working directory?
 In that case, we need to change our working directory. Which can simply be done with:
@@ -87,7 +102,7 @@ In the case above, we referenced our folder from the current folder by
 using: ". /". Using the ". /" symbol tells the computer to perform
 actions from the current directory. What if the "MyCode" folder was actually
 in the folder above my current directory however? Then we would have to use
-the ".. /" symbol, which indicates the parent directory to my current directory.
+the symbol: ".. /", which indicates the parent directory to my current directory.
 Here's what this looks like in practice:
 
 ```bash
@@ -250,3 +265,82 @@ within the same commit. There are three steps to creating a commit:
    ```bash
    git commit -m "Message to describe commit"
    ```
+
+### Pushing / Pulling Commits
+Up to this point, we have been working with only the local repository. This
+means, if teammates were working on other computers they wouldn't see the
+commits we added. To fix this, we need to use a remote repository as discussed
+earlier. 
+
+If you created the current repository without cloning (using `git init`), then
+you first need to link the remote repository. This can be done with the command:
+
+```bash
+git remote add <name> <url>
+```
+
+The convention is to name the main, remote repository: "origin". For example,
+if we were to add the repository for these tutorials to a local repository we
+would run:
+
+```bash
+git remote add origin https://github.com/purdue-arc/arc_tutorials.git
+```
+
+Now that we have a remote repository added, how do we make use of it? This is
+where the "push" and "pull" commands come into play. As it might suggest,
+"pushing" is the act of sending your commits to the remote repo and "pulling" is
+the act of receiving new commits.
+
+Generally at the start of a work session you always want to pull down new
+commits, this can done by running:
+
+```bash
+git pull <name> <branch>
+```
+
+Now at this point, you may be confused by the "branch" argument. For now, we
+will ignore this detail. In fact, these arguments can be
+ignored altogether if you only have one remote repository:
+
+```bash
+git pull
+```
+
+Now that we have the latest version of the code from the remote repository,
+lets pretend we add our own changes and commit them using the process discussed
+above. To "push" them to the remote server, we again have two options:
+
+```bash
+git push <name> <branch>
+```
+
+or if there is only one remote repository:
+
+```bash
+git push
+```
+
+> Depending on the provider of the remote server, authentication may be required
+> (like signing into your GitHub account).
+
+If changes were pushed to server by someone else before you pushed your commits,
+then it may be required you first pull down their commits before pushing.
+
+### Merge Conflicts
+
+Git does a lot of work to organize changes between various commits, however
+sometimes there may be conflicts that users need to manually fix.
+
+This is what we would call a "merge conflict". This will often occur
+when pulling new changes down to your local repository. In the event of
+a merge conflict, you will be asked to resolve conflicts on the listed
+files. This entails editing each file, where indicated, and choosing which 
+changes should be kept (the server's or yours).
+
+After resolving the conflicts, you will need to save the files and create
+a new commit of the changes.
+
+### Branching
+
+TODO
