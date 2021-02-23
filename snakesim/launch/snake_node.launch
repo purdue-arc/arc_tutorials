@@ -1,7 +1,11 @@
 <launch>
   <arg name="use_pygame" default="false"/>
+  <arg name="size" default="3"/>
+  <arg name="growth" default="1"/>
 
   <node type="snake_node" pkg="snakesim" name="snake_node" output="screen">
     <param name="render/enabled" value="$(arg use_pygame)"/>
+    <param name="snake/initial_segments" value="$(arg size)"/>
+    <param name="snake/growth" value="$(arg growth)"/>
   </node>
 </launch>
