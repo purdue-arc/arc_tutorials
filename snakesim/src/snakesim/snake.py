@@ -43,8 +43,9 @@ class Snake(object):
         """Exception for when the snake self intersects"""
         pass
 
-    def __init__(self, position, heading_vector, num_segments=3,
+    def __init__(self, position, heading_vector, num_segments=3, growth=1,
                  radius=0.5, follow_distance=0.75, path_resolution=0.01):
+        self.growth = growth
         self.follow_distance = follow_distance
         self.path_resolution = path_resolution
 
@@ -113,9 +114,10 @@ class Snake(object):
                 return index
         return len(path)
 
-    def add_segment(self):
+    def grow(self):
         """Add a new segment on to the tail."""
-        copy = self.segments[-1]
-        segment = Segment(copy.radius, copy.position.copy(),
-                          copy.heading_vector.copy())
-        self.segments.append(segment)
+        for __ in range(self.growth):
+            copy = self.segments[-1]
+            segment = Segment(copy.radius, copy.position.copy(),
+                              copy.heading_vector.copy())
+            self.segments.append(segment)

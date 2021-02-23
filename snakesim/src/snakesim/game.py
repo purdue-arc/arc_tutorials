@@ -39,17 +39,21 @@ from snakesim.geometry import Vector
 class Game(object):
     """A simple game of Snake."""
     def __init__(self, bounds=10, segment_radius=0.5, segment_follow_dist=0.75,
-                 path_resolution=0.01, render=True, render_scaling=50):
+                 path_resolution=0.01, render=True, render_scaling=50,
+                 initial_segments=3, snake_growth=1):
 
         self.arena = Arena(bounds, bounds)
         self.goal = Goal(self.arena, radius=segment_radius)
-        self.snake = Snake(Vector(8, 6), Vector(0, 1), num_segments=3,
+        self.snake = Snake(Vector(8, 6), Vector(0, 1),
+                           num_segments=initial_segments,
+                           growth=snake_growth,
                            radius=segment_radius,
                            follow_distance=segment_follow_dist,
                            path_resolution=path_resolution)
 
         self.goal.randomize(self.snake)
         self.active = True
+        self.score = 0
 
         self.render_enabled = render
         if self.render_enabled:
@@ -65,6 +69,7 @@ class Game(object):
                            path_resolution=copy.path_resolution)
         self.goal.randomize(self.snake)
         self.active = True
+        self.score = 0
 
     def step(self, linear_velocity, angular_velocity, delta_t):
         """Advance one time-step in the game."""
@@ -81,7 +86,8 @@ class Game(object):
                     and self.goal.position is not None
                     and (self.goal.position - self.snake.head.position).magnitude()
                     <= self.goal.radius):
-                self.snake.add_segment()
+                self.score += 1
+                self.snake.grow()
                 self.goal.randomize(self.snake)
 
         if self.render_enabled:

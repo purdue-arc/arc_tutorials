@@ -53,7 +53,9 @@ class SnakeGameROS(object):
             segment_follow_dist=rospy.get_param('~snake/segment_follow_dist', 0.75),
             path_resolution=rospy.get_param('~snake/path_resolution', 0.01),
             render=rospy.get_param('~render/enabled', True),
-            render_scaling=rospy.get_param('~render/scaling', 50)
+            render_scaling=rospy.get_param('~render/scaling', 50),
+            initial_segments=rospy.get_param('~snake/initial_segments', 3),
+            snake_growth=rospy.get_param('~snake/growth', 1)
         )
 
         self.lock = Lock()
@@ -140,7 +142,7 @@ class SnakeGameROS(object):
                 goal_msg.point.y = self.game.goal.position.y
                 self.goal_pub.publish(goal_msg)
 
-            self.score_pub.publish(len(self.game.snake.segments))
+            self.score_pub.publish(self.game.score)
             self.active_pub.publish(self.game.active)
 
         self.last_time = now
