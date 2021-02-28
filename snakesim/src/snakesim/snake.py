@@ -75,9 +75,12 @@ class Snake(object):
         # move head
         delta_yaw = angular_velocity * delta_t
         heading_vector = self.head.heading_vector.rotate(delta_yaw)
-
         body_vector = (self.head.position - self.body[0].position).unit()
-        if math.acos(np.dot(body_vector, heading_vector)) > self.MAX_ANGLE:
+
+        dp = np.dot(body_vector, heading_vector)
+        dp = max(min(dp, 1.0), -1.0)
+
+        if math.acos(dp) > self.MAX_ANGLE:
             if np.cross(body_vector, heading_vector) > 0:
                 heading_vector = body_vector.rotate(self.MAX_ANGLE)
             else:
