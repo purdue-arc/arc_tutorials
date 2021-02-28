@@ -45,6 +45,7 @@ class Snake(object):
 
     def __init__(self, position, heading_vector, num_segments=3, growth=1,
                  radius=0.5, follow_distance=0.75, path_resolution=0.01):
+        self.initial_segments = num_segments
         self.growth = growth
         self.follow_distance = follow_distance
         self.path_resolution = path_resolution

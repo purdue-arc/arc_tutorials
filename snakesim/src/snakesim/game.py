@@ -63,10 +63,12 @@ class Game(object):
     def reset(self):
         """reset the game"""
         copy = self.snake
-        self.snake = Snake(Vector(8, 6), Vector(0, 1), num_segments=3,
-                           radius=copy.head.radius,
-                           follow_distance=copy.follow_distance,
-                           path_resolution=copy.path_resolution)
+        self.snake = Snake(Vector(8, 6), Vector(0, 1),
+                            num_segments=copy.initial_segments,
+                            growth=copy.growth,
+                            radius=copy.head.radius,
+                            follow_distance=copy.follow_distance,
+                            path_resolution=copy.path_resolution)
         self.goal.randomize(self.snake)
         self.active = True
         self.score = 0
