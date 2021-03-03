@@ -36,21 +36,23 @@ from snakesim.renderer import Renderer
 from snakesim.snake import Snake
 from snakesim.geometry import Vector
 
+import random
+
 class Game(object):
     """A simple game of Snake."""
     def __init__(self, bounds=10, segment_radius=0.5, segment_follow_dist=0.75,
                  path_resolution=0.01, render=True, render_scaling=50,
                  initial_segments=3, snake_growth=1):
-
         self.arena = Arena(bounds, bounds)
         self.goal = Goal(self.arena, radius=segment_radius)
-        self.snake = Snake(Vector(8, 6), Vector(0, 1),
+        snake_len = segment_follow_dist*(initial_segments-1) + 2*segment_radius
+        position, heading = self.get_random_start(bounds, 0.8, snake_len, segment_radius)
+        self.snake = Snake(position, heading,
                            num_segments=initial_segments,
                            growth=snake_growth,
                            radius=segment_radius,
                            follow_distance=segment_follow_dist,
                            path_resolution=path_resolution)
-
         self.goal.randomize(self.snake)
         self.active = True
         self.score = 0
@@ -60,10 +62,38 @@ class Game(object):
             self.renderer = Renderer(bounds, segment_radius, scaling=render_scaling)
             self._render()
 
+    def get_random_start(self, bounds, usable, snake_len, radius):
+        """Generate random starting position and heading."""
+        heading = Vector(random.uniform(-1.0, 1.0),
+                        random.uniform(-1.0, 1.0)).unit()
+        mini_bounds = bounds*usable
+        Xmax = mini_bounds - snake_len*abs(heading.x)
+        Ymax = mini_bounds - snake_len*abs(heading.y)
+
+        if heading.x > 0:
+            X0 = random.uniform(0, Xmax)
+        else:
+            X0 = random.uniform(Xmax, mini_bounds)
+
+        if heading.y > 0:
+            Y0 = random.uniform(0, Ymax)
+        else:
+            Y0 = random.uniform(Ymax, mini_bounds)
+
+        X0 += (bounds-mini_bounds)/2
+        Y0 += (bounds-mini_bounds)/2
+
+        tail = Vector(X0, Y0)
+        head = tail + (snake_len-radius)*heading
+
+        return (head, heading)
+
     def reset(self):
         """reset the game"""
         copy = self.snake
-        self.snake = Snake(Vector(8, 6), Vector(0, 1),
+        snake_len = copy.follow_distance*(copy.initial_segments-1) + 2*copy.head.radius
+        position, heading = self.get_random_start(self.arena.width, 0.8, snake_len, copy.head.radius)
+        self.snake = Snake(position, heading,
                             num_segments=copy.initial_segments,
                             growth=copy.growth,
                             radius=copy.head.radius,
