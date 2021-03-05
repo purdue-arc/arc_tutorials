@@ -48,7 +48,7 @@ class Goal(object):
                              + self.radius
                              + self.REQUIRED_SEPARATION)
         for __ in range(self.MAX_ATTEMPTS):
-            goal = self._arena.generate_position()
+            goal = self._arena.generate_safe_position()
             if (snake.head.position - goal).magnitude() >= required_distance:
                 self.position = goal
                 return

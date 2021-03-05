@@ -48,6 +48,13 @@ class Arena(object):
             self.height * random()
         )
 
+    def generate_safe_position(self):
+        """Generates a random position within the bounds."""
+        return Vector(
+            self.width/10 + 0.8*self.width*random(),
+            self.height/10 + 0.8*self.height*random(),
+        )
+
     def check_position(self, position, radius=0.0):
         """Validate a position is within the bounds"""
         valid_x = position.x >= radius and position.x < self.width - radius
