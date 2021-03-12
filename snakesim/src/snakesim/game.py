@@ -44,7 +44,7 @@ class Game(object):
                  path_resolution=0.01, render=True, render_scaling=50,
                  initial_segments=3, snake_growth=1):
         self.arena = Arena(bounds, bounds)
-        self.goal = Goal(self.arena, radius=segment_radius)
+        self.goal = Goal(self.arena, radius=1.0)
 
         position, heading = self.get_random_start(bounds)
         self.snake = Snake(position, heading,

@@ -33,8 +33,8 @@ License:
 class Goal(object):
     """A goal for the snake to chase."""
 
-    MAX_ATTEMPTS = 10
-    REQUIRED_SEPARATION = 0.5
+    MAX_ATTEMPTS = 100
+    REQUIRED_SEPARATION = 2.0
 
     def __init__(self, arena, radius=0.5):
         self._arena = arena
@@ -52,3 +52,5 @@ class Goal(object):
             if (snake.head.position - goal).magnitude() >= required_distance:
                 self.position = goal
                 return
+        if self.position == None:
+            print("Failed to generate new goal position")
