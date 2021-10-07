@@ -57,7 +57,7 @@ class Snake(object):
             self.segments.append(segment)
 
         length = (num_segments-1) * follow_distance
-        count = length/path_resolution + 1
+        count = int(length/path_resolution + 1)
         self._path = [position - delta*heading_vector for delta in np.linspace(0, length, count)]
 
     @property
