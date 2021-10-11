@@ -39,8 +39,10 @@ import rospy
 from geometry_msgs.msg import Twist, PoseArray, Pose, PointStamped
 from std_msgs.msg import Int32, Bool
 from std_srvs.srv import Empty, EmptyResponse
+from dynamic_reconfigure.server import Server
 
 import snakesim
+from snakesim.cfg import SnakeNodeConfig
 
 class SnakeGameROS(object):
     """ROS wrapper for the snake game."""
@@ -52,7 +54,7 @@ class SnakeGameROS(object):
             segment_radius=rospy.get_param('~snake/segment_radius', 0.5),
             segment_follow_dist=rospy.get_param('~snake/segment_follow_dist', 0.75),
             path_resolution=rospy.get_param('~snake/path_resolution', 0.01),
-            render=rospy.get_param('~render/enabled', True),
+            render=rospy.get_param('~render', True),
             render_scaling=rospy.get_param('~render/scaling', 50),
             initial_segments=rospy.get_param('~snake/initial_segments', 3),
             snake_growth=rospy.get_param('~snake/growth', 1)
@@ -78,6 +80,9 @@ class SnakeGameROS(object):
         # Services
         rospy.Service('snake/reset', Empty, self.reset_cb)
 
+        # Dynamic reconfigre
+        Server(SnakeNodeConfig, self.cfg_cb)
+
         while not rospy.is_shutdown():
             self.loop_once()
             try:
@@ -98,6 +103,11 @@ class SnakeGameROS(object):
         self.last_time = None
         self.lock.release()
         return EmptyResponse()
+
+    def cfg_cb(self, config, __):
+        """Callback for dynamic reconfigure."""
+        self.game.renderer.enable = config["render"]
+        return config
 
     def loop_once(self):
         """Main loop."""

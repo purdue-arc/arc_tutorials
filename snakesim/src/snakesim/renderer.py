@@ -43,18 +43,31 @@ class Renderer(object):
     COLOR_BODY = (0, 200, 0)            # Green
     COLOR_HEAD = (150, 200, 0)          # Yellow
 
-    class ShutdownError(Exception):
-        """Exception for when pygame is shut down"""
-        pass
-
-    def __init__(self, bounds, padding, scaling=50):
+    def __init__(self, bounds, padding, scaling=50, enable=True):
         self.bounds = bounds
         self.padding = padding
         self.scaling = scaling
-        window_size = int(scaling * (bounds + 2*padding))
-        pygame.display.init()
-        self._screen = pygame.display.set_mode((window_size, window_size))
+        self.WINDOW_SIZE = (int(scaling * (bounds + 2*padding)), ) * 2
+        self._enable = enable
+        if enable:
+            pygame.display.init()
+            self._screen = pygame.display.set_mode(self.WINDOW_SIZE)
         self._thread = None
+
+    @property
+    def enable(self):
+        return self._enable
+
+    @enable.setter
+    def enable(self, enable):
+        if enable:
+            pygame.display.init()
+            self._screen = pygame.display.set_mode(self.WINDOW_SIZE)
+        else:
+            if self._thread is not None and self._thread.is_alive():
+                self._thread.join()
+            pygame.quit()
+        self._enable = enable
 
     def _convert_to_display_coords(self, position):
         """Convert game coordinates to display coordinates."""
@@ -66,6 +79,8 @@ class Renderer(object):
 
     def render(self, goal, snake):
         """Render the current state of the game."""
+        if not self._enable:
+            return
 
         if self._thread is not None and self._thread.is_alive():
             # Still rendering the last frame, drop this one
@@ -74,7 +89,8 @@ class Renderer(object):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
-                raise self.ShutdownError()
+                self._enable = False
+                return
 
         self._screen.fill(self.COLOR_BACKGROUND)
 

@@ -2,10 +2,15 @@ cmake_minimum_required(VERSION 3.0.2)
 project(snakesim)
 
 # find catkin so we can use our macros
-find_package(catkin REQUIRED)
+find_package(catkin REQUIRED dynamic_reconfigure)
 
 # install python module(s)
 catkin_python_setup()
+
+#add dynamic reconfigure api
+generate_dynamic_reconfigure_options(
+  cfg/SnakeNode.cfg
+)
 
 # generate variables for installation
 catkin_package()
@@ -24,16 +29,3 @@ catkin_install_python(PROGRAMS
 install(DIRECTORY launch/
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
-
-#############
-## Testing ##
-#############
-
-## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_snakesim.cpp)
-# if(TARGET ${PROJECT_NAME}-test)
-#   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
-# endif()
-
-## Add folders to be run by python nosetests
-# catkin_add_nosetests(test)

@@ -57,10 +57,8 @@ class Game(object):
         self.active = True
         self.score = 0
 
-        self.render_enabled = render
-        if self.render_enabled:
-            self.renderer = Renderer(bounds, segment_radius, scaling=render_scaling)
-            self._render()
+        self.renderer = Renderer(bounds, segment_radius, scaling=render_scaling, enable=render)
+        self.renderer.render(self.goal, self.snake)
 
     def get_random_start(self, bounds):
         """Generate random starting position and heading."""
@@ -103,13 +101,4 @@ class Game(object):
                 self.score += 1
                 self.snake.grow()
                 self.goal.randomize(self.snake)
-
-        if self.render_enabled:
-            self._render()
-
-    def _render(self):
-        """Render the current state of the game."""
-        try:
-            self.renderer.render(self.goal, self.snake)
-        except Renderer.ShutdownError:
-            self.render_enabled = False
+        self.renderer.render(self.goal, self.snake)
